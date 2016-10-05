@@ -1,0 +1,9 @@
+*.pyc
+*.swp
+*.pdf
+.DS_Store
+*.gslides
+*.txt
+*.doc[x]
+*.ppt[x]
+*.json
