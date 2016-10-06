@@ -6,9 +6,10 @@ import random
 from flask import Flask
 from flask import request
 from flask import render_template
-
+from flask import redirect
 
 from Enum import POST, GET
+from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
 from ETLionCore import ETLionCore
 
 app = Flask(__name__)
@@ -19,9 +20,19 @@ def index():
 
 @app.route('/calculate', methods=[POST, GET])
 def calculate():
-    et_lion_core = ETLionCore(request.form)
-    et_lion_core.trade()
-    return redirect('/')
+    if request.method == POST:
+        params = {
+            ORDER_DISCOUNT: request.form[ORDER_DISCOUNT], 
+            ORDER_SIZE: request.form[ORDER_SIZE], 
+            INVENTORY: request.form[INVENTORY], 
+            TRADING_FREQUENCY: request.form[TRADING_FREQUENCY]
+        }
+        et_lion_core = ETLionCore(**params)
+        et_lion_core.trade()
+        return redirect('/')
+    else:
+        print "get calculate"
+        return redirect('/')
 
 if __name__ == "__main__":
     import click

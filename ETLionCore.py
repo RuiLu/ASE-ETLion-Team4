@@ -1,15 +1,25 @@
+import json
 import time
+import random
+import urllib2
+
+from Enum import POST, GET, ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
+
+# Server API URLs
+QUERY = "http://localhost:8080/query?id={}"
+ORDER = "http://localhost:8080/order?id={}&side=sell&qty={}&price={}"
 
 class ETLionCore(object):
     def __init__(self, **kwargs):
-        self.self.order_discount = kwargs["order_discount"]
-        self.self.order_size = kwargs["order_size"]
-        self.inventory = kwargs["inventory"]
-        self.trading_freq = kwargs["trading_frequency"]
+        print kwargs
+        self.order_discount = int(kwargs["order_discount"])
+        self.order_size = int(kwargs["order_size"])
+        self.inventory = int(kwargs["inventory"])
+        self.trading_freq = int(kwargs["trading_frequency"])
 
     def trade(self):
         # Start with all shares and no profit
-        qty = INVENTORY
+        qty = self.inventory
         pnl = 0
 
         # Repeat the strategy until we run out of shares.
