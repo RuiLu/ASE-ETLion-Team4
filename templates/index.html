@@ -4,7 +4,8 @@
 	<title>ET Lion</title>
 </head>
 <body>
-	<h1>Please Enter Following Parameters You Want To Start Trading</h1>
+	<h1>Hi, Trader {{ username if username else "" }}</h1>
+	<h2>Please Enter Following Parameters You Want To Start Trading</h2>
 	<form method="POST" action="calculate">
 		<p>Order Discount</p>
 		<input type="text" name="order_discount" placeholder="Order Discount">

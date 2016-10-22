@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Hello React!</title>
+    <!-- styles -->
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+
+</head>
+<body>
+
+{% block content %}
+{% endblock %}
+
+<script src="{{ url_for('static', filename='bower_components/react/react.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bower_components/react/react-dom.min.js') }}"></script>
+<script type="text/babel" src="{{ url_for('static', filename='scripts/js/main.js') }}"></script>
+
+<script src="https://unpkg.com/babel-core@5.8.38/browser.min.js"></script>
+</body>
+</html>
