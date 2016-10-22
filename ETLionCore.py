@@ -24,8 +24,7 @@ class ETLionCore(object):
         # Repeat the strategy until we run out of shares.
         while qty > 0:
             # Query the price once every N seconds.
-            for _ in xrange(self.trading_freq):
-                time.sleep(1)
+            time.sleep(self.trading_freq)
 
             quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
             price = float(quote['top_bid']['price'])
