@@ -33,7 +33,7 @@ def index():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if 'email' in session:
-        return redirect(url_for(''))
+        return redirect('/')
 
     form = SignupForm()
 
@@ -46,7 +46,7 @@ def signup():
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect(url_for(''))
+            return redirect('/')
 
     elif request.method == "GET":
         return render_template('signup.html', form=form)
@@ -55,7 +55,7 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if 'email' in session:
-        return redirect(url_for(''))
+        return redirect('/')
 
     form = LoginForm()
 
@@ -69,7 +69,7 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user is not None and user.check_password(password):
                 session['email'] = form.email.data
-                return redirect(url_for(''))
+                return redirect('/')
             else:
                 return redirect(url_for('login'))
 
@@ -79,7 +79,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop('email', None)
-    return redirect(url_for('index'))
+    return redirect('/')
 
 @app.route('/calculate', methods=[POST, GET])
 def calculate():
