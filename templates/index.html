@@ -3,24 +3,35 @@
 {% block content %}
 
 	<main class="container signup-section">
+
+        <div class="sign col-md-4 col-md-offset-8">
+            <a href="{{ url_for('signup') }}" class="btn">Sign up</a>
+            <a href="{{ url_for('login') }}" class="btn">Log in</a>
+        </div>
+
         <div class="section-content">
         	<h1>Hi, Trader {{ username if username else "" }}</h1>
 			<h2>Please Enter Following Parameters You Want To Start Trading</h2>
-			<form method="POST" action="calculate">
-				<p>Order Discount</p>
-				<input type="text" name="order_discount" placeholder="Order Discount">
-				<p>Order Size</p>
-				<input type="text" name="order_size" placeholder="Order Size">
-				<p>Inventory</p>
-				<input type="text" name="inventory" placeholder="Inventory">
-				<p>Trading Frequency</p>
-				<input type="text" name="trading_frequency" placeholder="Trading Frequency">
-				<br>
-				<br>
-				<br>
-				<input type="submit" name="calculate">
-			</form>
+
+            <div id="order-form">
+                <form method="POST" action="calculate">
+                    <p>Order Discount</p>
+                    <input type="text" name="order_discount" placeholder="Order Discount">
+                    <p>Order Size</p>
+                    <input type="text" name="order_size" placeholder="Order Size">
+                    <p>Inventory</p>
+                    <input type="text" name="inventory" placeholder="Inventory">
+                    <p>Trading Frequency</p>
+                    <input type="text" name="trading_frequency" placeholder="Trading Frequency">
+                    <br>
+                    <br>
+                    <br>
+                    <input class="btn" type="submit" name="calculate">
+                </form>
+            </div>
 		</div>
+
+
 	</main>
 
 {% endblock %}

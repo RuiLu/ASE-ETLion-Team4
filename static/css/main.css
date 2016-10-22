@@ -1,7 +1,8 @@
 html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', sans-serif
+    font-family: 'Open Sans', sans-serif;
+    background-color: #EDEFED;
 }
 
 .container {
@@ -9,13 +10,29 @@ html, body {
     margin: 0 auto
 }
 
+.sign {
+    margin-top: 30px;
+}
+
+#order-form {
+    background-color: lightskyblue;
+    width: 300px;
+    margin: 0 auto;
+    text-align: center;
+    border-radius: 10px;
+}
+
 .btn {
     background-color: #4386fc;
     color: #fff;
     font-size: 16px;
     font-weight: 300;
-    padding: 16px 26px;
+    padding: 6px 16px;
     text-decoration: none
+}
+
+input.btn {
+    margin-bottom: 10px;
 }
 
 .video-section {
