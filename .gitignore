@@ -7,3 +7,10 @@
 *.doc[x]
 *.ppt[x]
 *.json
+ASE-ETLion-Team4.iml
+.idea/compiler.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
+.idea/copyright/profiles_settings.xml
