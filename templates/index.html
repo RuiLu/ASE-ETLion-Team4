@@ -1,24 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>ET Lion</title>
-</head>
-<body>
-	<h1>Hi, Trader {{ username if username else "" }}</h1>
-	<h2>Please Enter Following Parameters You Want To Start Trading</h2>
-	<form method="POST" action="calculate">
-		<p>Order Discount</p>
-		<input type="text" name="order_discount" placeholder="Order Discount">
-		<p>Order Size</p>
-		<input type="text" name="order_size" placeholder="Order Size">
-		<p>Inventory</p>
-		<input type="text" name="inventory" placeholder="Inventory">
-		<p>Trading Frequency</p>
-		<input type="text" name="trading_frequency" placeholder="Trading Frequency">
-		<br>
-		<br>
-		<br>
-		<input type="submit" name="calculate">
-	</form>
-</body>
-</html>
+{% extends "layout.html" %}
+
+{% block content %}
+
+	<main class="container signup-section">
+        <div class="section-content">
+        	<h1>Hi, Trader {{ username if username else "" }}</h1>
+			<h2>Please Enter Following Parameters You Want To Start Trading</h2>
+			<form method="POST" action="calculate">
+				<p>Order Discount</p>
+				<input type="text" name="order_discount" placeholder="Order Discount">
+				<p>Order Size</p>
+				<input type="text" name="order_size" placeholder="Order Size">
+				<p>Inventory</p>
+				<input type="text" name="inventory" placeholder="Inventory">
+				<p>Trading Frequency</p>
+				<input type="text" name="trading_frequency" placeholder="Trading Frequency">
+				<br>
+				<br>
+				<br>
+				<input type="submit" name="calculate">
+			</form>
+		</div>
+	</main>
+
+{% endblock %}
