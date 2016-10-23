@@ -9,26 +9,46 @@ from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
+from flask_socketio import SocketIO, disconnect
+
 from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
 from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
 from ETLionCore import ETLionCore
+from AppUtil import init_app
 
-app = Flask(__name__)
-app.config["DEBUG"] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://xtifhtrqnydawd:n3xiwg41_vMzqBKG99pKt3gX4D@ec2-50-19-219-148.compute-1.amazonaws.com:5432/d9265ge1sbuard'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app = init_app()
 
 db.init_app(app)
 
-app.secret_key = "development-key"
+async_mode = None
+socketio = SocketIO(app, async_mode=async_mode)
 
+@socketio.on('connect')
+def test_connect():
+    print "Connected!!!!!!!!!!!!!!!!!!!!!!!"
+
+@socketio.on('my_event')
+def test_message(message):
+    print message
+
+@socketio.on('calculate')
+def calculate(post_params):
+    print post_params
+    params = {
+        ORDER_DISCOUNT: int(post_params[ORDER_DISCOUNT]), 
+        ORDER_SIZE: int(post_params[ORDER_SIZE]), 
+        INVENTORY: int(post_params[INVENTORY]), 
+        TRADING_FREQUENCY: int(post_params[TRADING_FREQUENCY])
+    }
+    et_lion_core = ETLionCore(**params)
+    et_lion_core.trade()
+    
 @app.route('/')
 def index():
-    return render_template("index.html")
-
+    return render_template("index.html", async_mode=socketio.async_mode)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -50,7 +70,6 @@ def signup():
 
     elif request.method == "GET":
         return render_template('signup.html', form=form)
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -81,44 +100,17 @@ def logout():
     session.pop('email', None)
     return redirect('/')
 
-@app.route('/calculate', methods=[POST, GET])
-def calculate():
-    if request.method == POST:
-        params = {
-            ORDER_DISCOUNT: request.form[ORDER_DISCOUNT], 
-            ORDER_SIZE: request.form[ORDER_SIZE], 
-            INVENTORY: request.form[INVENTORY], 
-            TRADING_FREQUENCY: request.form[TRADING_FREQUENCY]
-        }
-        et_lion_core = ETLionCore(**params)
-        et_lion_core.trade()
-        return redirect('/')
-    else:
-        print "get calculate"
-        return redirect('/')
 
 if __name__ == "__main__":
     import click
 
     @click.command()
     @click.option('--debug', is_flag=True)
-    @click.option('--threaded', is_flag=True)
     @click.argument('HOST', default='0.0.0.0')
     @click.argument('PORT', default=4156, type=int)
-    def run(debug, threaded, host, port):
-        """
-        This function handles command line parameters.
-        Run the server using:
-
-            python server.py
-
-        Show the help text using:
-
-            python server.py --help
-
-        """
+    def socketio_app_run(debug, host, port):
         HOST, PORT = host, port
         print "ET Lion Server Running On %s:%d" % (HOST, PORT)
-        app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
+        socketio.run(app, host=HOST, port=PORT, debug=debug)
 
-    run()
+    socketio_app_run()

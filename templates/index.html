@@ -10,27 +10,24 @@
         </div>
 
         <div class="section-content">
-        	<h1>Hi, Trader {{ username if username else "" }}</h1>
+        	<h1>Hi, Trader {{ username }}</h1>
 			<h2>Please Enter Following Parameters You Want To Start Trading</h2>
-
-            <div id="order-form">
-                <form method="POST" action="calculate">
-                    <p>Order Discount</p>
-                    <input type="text" name="order_discount" placeholder="Order Discount">
-                    <p>Order Size</p>
-                    <input type="text" name="order_size" placeholder="Order Size">
-                    <p>Inventory</p>
-                    <input type="text" name="inventory" placeholder="Inventory">
-                    <p>Trading Frequency</p>
-                    <input type="text" name="trading_frequency" placeholder="Trading Frequency">
-                    <br>
-                    <br>
-                    <br>
-                    <input class="btn" type="submit" name="calculate">
-                </form>
-            </div>
+            <form id="order-form" method="POST" action="#">
+                <p>Order Discount</p>
+                <input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
+                <p>Order Size</p>
+                <input type="text" name="order_size" id="order_size" placeholder="Order Size">
+                <p>Inventory</p>
+                <input type="text" name="inventory" id="inventory" placeholder="Inventory">
+                <p>Trading Frequency</p>
+                <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
+                <br>
+                <input class="btn" type="submit" value="calculate">
+            </form>
 		</div>
-
+		<h2>Trade Log:</h2>
+    	<div id="trade_log">
+    	</div>
 
 	</main>
 

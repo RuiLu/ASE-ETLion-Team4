@@ -3,9 +3,25 @@ import time
 import random
 import urllib2
 
+from flask_socketio import SocketIO, emit
+
+from AppUtil import init_app
 from Enum import POST, GET
 from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
 from Enum import QUERY_URL, ORDER_URL
+
+
+
+app = init_app()
+
+async_mode = None
+socketio = SocketIO(app, async_mode=async_mode)
+
+@socketio.on('my_event')
+def test_message(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']})
 
 
 class ETLionCore(object):
@@ -28,10 +44,10 @@ class ETLionCore(object):
 
             quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
             price = float(quote['top_bid']['price'])
-            print "Quoted at %s" % price
-
+         
             # Attempt to execute a sell order.
-            order_args = (self.order_size, price - self.order_discount)
+            discount_price = price - self.order_discount
+            order_args = (self.order_size, discount_price)
             print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
             url   = ORDER_URL.format(random.random(), *order_args)
             order = json.loads(urllib2.urlopen(url).read())
@@ -44,6 +60,16 @@ class ETLionCore(object):
                 qty -= self.order_size
                 print "Sold {:,} for ${:,}/share, ${:,} notional".format(self.order_size, price, notional)
                 print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+                emit('trade_log',
+                    {
+                        'order_size': self.order_size,
+                        'discount_price': discount_price,
+                        'share_price': price,
+                        'notional': notional,
+                        'pnl': pnl,
+                        'qty': qty
+                    }
+                )
             else:
                 print "Unfilled order; $%s total, %s qty" % (pnl, qty)
 
