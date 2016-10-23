@@ -16,25 +16,22 @@
             </div>
 
             <div class="cards">
-                <div id="order-form">
-                    <form method="POST" action="calculate">
-                        <label>Order Discount</label>
-                		<input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
-                        <br/>
-                        <label>Order Size</label>
-                        <input type="text" name="order_size" id="order_size" placeholder="Order Size">
-                        <br/>
-                        <label>Inventory</label>
-                        <input type="text" name="inventory" id="inventory" placeholder="Inventory">
-                        <br/>
-                        <label>Trading Frequency</label>
-                        <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
-                        <div class="btn-div">
-                            <input class="btn" type="submit" value="Place Order" name="Place Order">
-                        </div>
-                    </form>
-                </div>
-
+                <form id="order-form" method="POST"  method="POST" action="#">
+                    <label>Order Discount</label>
+            		<input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
+                    <br/>
+                    <label>Order Size</label>
+                    <input type="text" name="order_size" id="order_size" placeholder="Order Size">
+                    <br/>
+                    <label>Inventory</label>
+                    <input type="text" name="inventory" id="inventory" placeholder="Inventory">
+                    <br/>
+                    <label>Trading Frequency</label>
+                    <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
+                    <div class="btn-div">
+                        <input class="btn" type="submit" value="Place Order" name="Place Order">
+                    </div>
+                </form>
                 <div class="card trades">
                     <table class="table table-striped" id="trades-table" class="tablesorter">
                         <thead>
