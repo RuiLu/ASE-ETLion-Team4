@@ -1,13 +1,54 @@
 html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', sans-serif;
-    background-color: #EDEFED;
+    font-family: 'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
 }
 
 .container {
-    max-width: 940px;
-    margin: 0 auto
+    height: 700px;
+    width: 100%;
+    background: url("../images/background.jpg") no-repeat center center;
+    background-size: cover;
+}
+
+.intro {
+
+}
+
+.cards {
+    display: flex;
+    justify-content: space-around;
+    height: 370px;
+    width: 1120px;
+    clear: both;
+}
+
+.trades {
+    flex-grow: 0.5;
+    background-color: #55DED3;
+    width: 370px;
+    height: 500px;
+    border-radius: 10px;
+    padding: 20px 20px;
+    box-shadow: 0 0 10px gold;
+}
+
+.section-content h1,
+.section-content h2 {
+    color: black;
+    background: #0B6EFD;
+    clear: both;
+    font-size: 2em;
+    margin-left: 7.5%;
+    border-radius: 2%;
+    width: 35%;
+}
+
+.section-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    width: 60%;
 }
 
 .sign {
@@ -15,24 +56,67 @@ html, body {
 }
 
 #order-form {
-    background-color: lightskyblue;
-    width: 300px;
+    background-color: #0B6EFD;
+    width: 370px;
+    height: 300px;
     margin: 0 auto;
-    text-align: center;
     border-radius: 10px;
+    padding: 20px 0;
+    clear: both;
+    box-shadow: 0 0 10px gold;
+}
+
+.trades {
+
+}
+
+form {
+    padding: 15px 0;
+}
+
+form label {
+    display: inline-block;
+    width: 140px;
+    text-align: right;
+    margin-right: 20px;
+}
+
+form input {
+    margin-bottom: 15px;
+    width: 180px;
+}
+
+.btn-div {
+    margin: 20px;
+    text-align: center;
 }
 
 .btn {
-    background-color: #4386fc;
+    background-color: #0B6EFD;
     color: #fff;
     font-size: 16px;
     font-weight: 300;
     padding: 6px 16px;
-    text-decoration: none
+    text-decoration: none;
+    width: 140px;
+}
+
+.btn:hover {
+    background-color: #0a4386;
+    opacity: 1;
+    color: white;
 }
 
 input.btn {
     margin-bottom: 10px;
+    background-color: gold;
+    font-weight: 700;
+    color: black;
+    padding: 10px;
+}
+
+input.btn:hover {
+    background-color: coral;
 }
 
 .video-section {
@@ -115,4 +199,39 @@ input.btn {
     .video-section h1 {
         font-size: 32px;
     }
+}
+
+.signup-section {
+    background: wheat;
+    display: flex;
+    justify-content: center;
+}
+
+.signup-section h2 {
+    background: none;
+    margin-top: 30px;
+}
+
+.signup-section form {
+    background: deepskyblue;
+    clear: both;
+    width: 360px;
+    height: 320px;
+    border-radius: 5%;
+}
+
+.signup-section #submit {
+    float: right;
+    padding: 6px 16px;
+    border-radius: 25px;
+    border: 1px solid white;
+    font-size: 1.2em;
+    margin-right: 10px;
+}
+
+.login-section form {
+    background: deepskyblue;
+    clear: both;
+    width: 360px;
+    height: 230px;
 }

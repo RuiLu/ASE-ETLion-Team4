@@ -2,7 +2,7 @@
 
 {% block content %}
 
-	<main class="container signup-section">
+    <main class="container">
 
         <div class="sign col-md-4 col-md-offset-8">
             <a href="{{ url_for('signup') }}" class="btn">Sign up</a>
@@ -10,28 +10,66 @@
         </div>
 
         <div class="section-content">
-        	<h1>Hi, Trader {{ username if username else "" }}</h1>
-			<h2>Please Enter Following Parameters You Want To Start Trading</h2>
 
-            <div id="order-form">
-                <form method="POST" action="calculate">
-                    <p>Order Discount</p>
-                    <input type="text" name="order_discount" placeholder="Order Discount">
-                    <p>Order Size</p>
-                    <input type="text" name="order_size" placeholder="Order Size">
-                    <p>Inventory</p>
-                    <input type="text" name="inventory" placeholder="Inventory">
-                    <p>Trading Frequency</p>
-                    <input type="text" name="trading_frequency" placeholder="Trading Frequency">
-                    <br>
-                    <br>
-                    <br>
-                    <input class="btn" type="submit" name="calculate">
-                </form>
+            <div class="intro">
+                <h1>Hi, Trader {{ username if username else "" }}</h1>
+                <h2>Please Enter Following Parameters You Want To Start Trading</h2>
             </div>
-		</div>
 
+            <div class="cards">
+                <div id="order-form">
+                    <form method="POST" action="calculate">
+                        <label>Order Discount</label>
+                        <input type="text" name="order_discount" placeholder="Order Discount">
+                        <br/>
+                        <label>Order Size</label>
+                        <input type="text" name="order_size" placeholder="Order Size">
+                        <br/>
+                        <label>Inventory</label>
+                        <input type="text" name="inventory" placeholder="Inventory">
+                        <br/>
+                        <label>Trading Frequency</label>
+                        <input type="text" name="trading_frequency" placeholder="Trading Frequency">
+                        <div class="btn-div">
+                            <input class="btn" type="submit" name="Place Order">
+                        </div>
+                    </form>
+                </div>
 
-	</main>
+                <div class="card trades">
+                    <table class="table table-striped" id="trades-table" class="tablesorter">
+                        <thead>
+                        <tr>
+                            <th>Firstname</th>
+                            <th>Lastname</th>
+                            <th>Email</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="success">
+                            <td>John</td>
+                            <td>Doe</td>
+                            <td>john@example.com</td>
+                        </tr>
+                        <tr class="danger">
+                            <td>Mary</td>
+                            <td>Moe</td>
+                            <td>mary@example.com</td>
+                        </tr>
+                        <tr class="info">
+                            <td>July</td>
+                            <td>Dooley</td>
+                            <td>july@example.com</td>
+                        </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
 
 {% endblock %}
