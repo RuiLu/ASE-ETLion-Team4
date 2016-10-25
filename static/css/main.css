@@ -67,8 +67,27 @@ html, body {
 }
 
 .trades {
+    position: relative;
+}
+
+.trades #summary {
+    position: absolute;
+    top: 465px;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: space-between;
+}
+
+#summary div:nth-child(1) {
+    display: inline-block;
+}
+
+#summary div:nth-child(2) {
+    display: inline-block;
+    margin-left: 230px;
 
 }
+
 
 form {
     padding: 15px 0;
