@@ -36,19 +36,11 @@ def test_connect():
 @socketio.on('calculate')
 def calculate(post_params):
     print post_params
-    params = {
-        ORDER_DISCOUNT: int(post_params[ORDER_DISCOUNT]), 
-        ORDER_SIZE: int(post_params[ORDER_SIZE]), 
-        INVENTORY: int(post_params[INVENTORY]), 
-        TRADING_FREQUENCY: int(post_params[TRADING_FREQUENCY])
-    }
 
     order_discount = int(post_params[ORDER_DISCOUNT])
     order_size = int(post_params[ORDER_SIZE])
     inventory = int(post_params[INVENTORY])
     trading_freq = int(post_params[TRADING_FREQUENCY])
-    # et_lion_core = ETLionCore(**params)
-    # et_lion_core.trade()
 
     # Start with all shares and no profit
     qty = inventory
@@ -91,19 +83,6 @@ def calculate(post_params):
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
 
         time.sleep(1)
-
-    # while True :
-    #     emit('trade_log',
-    #         {
-    #             'order_size': 1,
-    #             'discount_price': 10,
-    #             'share_price': 200,
-    #             'notional': 11,
-    #             'pnl': 11,
-    #             'qty': 11
-    #         }
-    #     )
-    #     time.sleep(5)
     
 @app.route('/')
 def index():
@@ -163,12 +142,15 @@ if __name__ == "__main__":
     import click
 
     @click.command()
-    @click.option('--debug', is_flag=True)
     @click.argument('HOST', default='0.0.0.0')
     @click.argument('PORT', default=4156, type=int)
     def socketio_app_run(debug, host, port):
-        HOST, PORT = host, port
-        print "ET Lion Server Running On %s:%d" % (HOST, PORT)
-        socketio.run(app, host=HOST, port=PORT, debug=debug)
+        try:
+            HOST, PORT = host, port
+            print "ET Lion Server Running On %s:%d" % (HOST, PORT)
+            socketio.run(app, host=HOST, port=PORT, debug=True)
+        except KeyboardInterrupt:
+            print "Ctrl-c received! Sending kill to threads..."
+            socketio.stop()
 
     socketio_app_run()
