@@ -12,6 +12,7 @@
         <div class="section-content">
             <div class="intro">
                 <h1>Hi, Trader {{ username }}</h1>
+                <!-- <h1>{{ async_mode }}</h1> -->
                 <h2>Please Enter Following Parameters You Want To Start Trading</h2>
             </div>
 
@@ -45,7 +46,7 @@
                         </tr>
                         </thead>
                         <tbody id="trade_log">
-                        <tr class="danger">
+                        <!-- <tr class="danger">
                             <td>2</td>
                             <td>Sell</td>
                             <td>120.00</td>
@@ -60,7 +61,7 @@
                             <td>200</td>
                             <td>30000.00</td>
                             <td>Success</td>
-                        </tr>
+                        </tr> -->
                         
 
                         </tbody>
@@ -68,8 +69,8 @@
                     </table>
 
                     <div id="summary">
-                        <div><p>Total Progress: 30%</p></div>
-                        <div><p>PNL: </p></div>
+                        <div><p>Total Progress: <span id="percentage">0.0</span>%</p></div>
+                        <div><p>PNL: <span id="pnl">0</scan></p></div>
                     </div>
 
                 </div>
