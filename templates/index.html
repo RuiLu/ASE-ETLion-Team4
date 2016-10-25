@@ -3,13 +3,14 @@
 {% block content %}
 
     <main class="container">
-
         <div class="sign col-md-4 col-md-offset-8">
-            <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
-            <a href="{{ url_for('login') }}" class="btn">Log In</a>
-            <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+            {% if not username %}
+                <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
+                <a href="{{ url_for('login') }}" class="btn">Log In</a>
+            {% else %}
+                <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+            {% endif %}
         </div>
-
         <div class="section-content">
             <div class="intro">
                 <h1>Hi, Trader {{ username }}</h1>

@@ -87,12 +87,15 @@ def calculate(post_params):
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html", async_mode=socketio.async_mode)
+    if 'email' in session and 'username' in session:
+        return render_template("index.html", async_mode=socketio.async_mode, username=session['username'])
+    else:
+        return render_template("index.html", async_mode=socketio.async_mode)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if 'email' in session:
-        return redirect(url_for('index', username=session['email']))
+        return redirect(url_for('index', username=session['username']))
 
     form = SignupForm()
 
@@ -100,20 +103,20 @@ def signup():
         if not form.validate():
             return render_template('signup.html', form=form)
         else:
-            newuser = User(form.first_name.data, form.last_name.data, form.email.data, form.password.data)
+            newuser = User(form.firstname.data, form.lastname.data, form.email.data, form.password.data)
             db.session.add(newuser)
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect(url_for('index', username=newuser.email))
-
+            session['username'] = newuser.firstname + ' ' + newuser.lastname
+            return redirect(url_for('index', username=session['username']))
     elif request.method == "GET":
         return render_template('signup.html', form=form)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if 'email' in session:
-        return redirect(url_for('index', username=session['email']))
+    if 'email' in session and 'username' in session:
+        return redirect(url_for('index', username=session['username']))
 
     form = LoginForm()
 
@@ -123,11 +126,12 @@ def login():
         else:
             email = form.email.data
             password = form.password.data
-
             user = User.query.filter_by(email=email).first()
+            print user
             if user is not None and user.check_password(password):
-                session['email'] = form.email.data
-                return redirect(url_for('index', username=form.email.data))
+                session['email'] = user.email
+                session['username'] = user.firstname + ' ' + user.lastname
+                return redirect(url_for('index', username=session['username']))
             else:
                 return redirect(url_for('login'))
 
@@ -137,6 +141,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop('email', None)
+    session.pop('username', None)
     return redirect('/')
 
 if __name__ == "__main__":
