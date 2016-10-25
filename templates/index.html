@@ -5,14 +5,14 @@
     <main class="container">
 
         <div class="sign col-md-4 col-md-offset-8">
-            <a href="{{ url_for('signup') }}" class="btn">Sign up</a>
-            <a href="{{ url_for('login') }}" class="btn">Log in</a>
+            <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
+            <a href="{{ url_for('login') }}" class="btn">Log In</a>
+            <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
         </div>
 
         <div class="section-content">
             <div class="intro">
                 <h1>Hi, Trader {{ username }}</h1>
-                <!-- <h1>{{ async_mode }}</h1> -->
                 <h2>Please Enter Following Parameters You Want To Start Trading</h2>
             </div>
 
@@ -33,8 +33,8 @@
                         <input class="btn" type="submit" value="Place Order" name="Place Order">
                     </div>
                 </form>
-                <div class="card trades">
-                    <table class="table table-striped" id="trades-table" class="tablesorter">
+                <div class="card trades" style="overflow: scroll;">
+                    <table class="table table-striped" id="trades-table" class="tablesorter" >
                         <thead>
                         <tr>
                             <th>ID</th>
@@ -46,26 +46,7 @@
                         </tr>
                         </thead>
                         <tbody id="trade_log">
-                        <!-- <tr class="danger">
-                            <td>2</td>
-                            <td>Sell</td>
-                            <td>120.00</td>
-                            <td>600</td>
-                            <td>72000.00</td>
-                            <td>Fail</td>
-                        </tr>
-                        <tr class="success">
-                            <td>1</td>
-                            <td>Sell</td>
-                            <td>150.00</td>
-                            <td>200</td>
-                            <td>30000.00</td>
-                            <td>Success</td>
-                        </tr> -->
-                        
-
                         </tbody>
-
                     </table>
 
                     <div id="summary">
