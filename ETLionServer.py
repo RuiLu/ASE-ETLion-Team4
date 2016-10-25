@@ -9,15 +9,16 @@ from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
-from flask_socketio import SocketIO, disconnect
+from flask_socketio import SocketIO, send, emit, disconnect
 
 from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
-from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
+from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY, QUERY_URL, ORDER_URL
 from ETLionCore import ETLionCore
 from AppUtil import init_app
+
 
 app = init_app()
 
@@ -43,8 +44,68 @@ def calculate(post_params):
         INVENTORY: int(post_params[INVENTORY]), 
         TRADING_FREQUENCY: int(post_params[TRADING_FREQUENCY])
     }
-    et_lion_core = ETLionCore(**params)
-    et_lion_core.trade()
+
+    order_discount = int(post_params[ORDER_DISCOUNT])
+    order_size = int(post_params[ORDER_SIZE])
+    inventory = int(post_params[INVENTORY])
+    trading_freq = int(post_params[TRADING_FREQUENCY])
+    # et_lion_core = ETLionCore(**params)
+    # et_lion_core.trade()
+
+    # Start with all shares and no profit
+    qty = inventory
+    pnl = 0
+
+    # Repeat the strategy until we run out of shares.
+    while qty > 0:
+        # Query the price once every N seconds.
+        time.sleep(trading_freq)
+
+        quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
+        price = float(quote['top_bid']['price'])
+         
+        # Attempt to execute a sell order.
+        discount_price = price - order_discount
+        order_args = (order_size, discount_price)
+        print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
+        url   = ORDER_URL.format(random.random(), *order_args)
+        order = json.loads(urllib2.urlopen(url).read())
+
+        # Update the PnL if the order was filled.
+        if order['avg_price'] > 0:
+            price    = order['avg_price']
+            notional = float(price * order_size)
+            pnl += notional
+            qty -= order_size
+            print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
+            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+            emit('trade_log',
+                {
+                    'order_size': order_size,
+                    'discount_price': discount_price,
+                    'share_price': price,
+                    'notional': notional,
+                    'pnl': pnl,
+                    'qty': qty
+                }
+            )
+        else:
+            print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+
+        time.sleep(1)
+
+    # while True :
+    #     emit('trade_log',
+    #         {
+    #             'order_size': 1,
+    #             'discount_price': 10,
+    #             'share_price': 200,
+    #             'notional': 11,
+    #             'pnl': 11,
+    #             'qty': 11
+    #         }
+    #     )
+    #     time.sleep(5)
     
 @app.route('/')
 def index():
