@@ -112,7 +112,7 @@ def index():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if 'email' in session:
-        return redirect('/')
+        return redirect(url_for('.index', username=session['email']))
 
     form = SignupForm()
 
@@ -125,7 +125,7 @@ def signup():
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect('/')
+            return redirect(url_for('.index', username=newuser.email))
 
     elif request.method == "GET":
         return render_template('signup.html', form=form)
@@ -133,7 +133,7 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if 'email' in session:
-        return redirect('/')
+        return redirect(url_for('.index', username=session['email']))
 
     form = LoginForm()
 
@@ -147,7 +147,7 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user is not None and user.check_password(password):
                 session['email'] = form.email.data
-                return redirect('/')
+                return redirect(url_for('.index', username=form.email.data))
             else:
                 return redirect(url_for('login'))
 
