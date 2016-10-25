@@ -10,19 +10,10 @@ from Enum import POST, GET
 from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY
 from Enum import QUERY_URL, ORDER_URL
 
-
-
 app = init_app()
 
-async_mode = None
+async_mode = "threading"
 socketio = SocketIO(app, async_mode=async_mode)
-
-@socketio.on('my_event')
-def test_message(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
-
 
 class ETLionCore(object):
     def __init__(self, **kwargs):
@@ -34,6 +25,7 @@ class ETLionCore(object):
 
     def trade(self):
         # Start with all shares and no profit
+        print "ETLionCore Trading Start!!!!!!!!!!!!"
         qty = self.inventory
         pnl = 0
 
@@ -61,16 +53,14 @@ class ETLionCore(object):
                 print "Sold {:,} for ${:,}/share, ${:,} notional".format(self.order_size, price, notional)
                 print "PnL ${:,}, Qty {:,}".format(pnl, qty)
                 emit('trade_log',
-                    {
-                        'order_size': self.order_size,
-                        'discount_price': discount_price,
-                        'share_price': price,
-                        'notional': notional,
-                        'pnl': pnl,
-                        'qty': qty
-                    }
+                        {
+                            'order_size': self.order_size,
+                            'discount_price': discount_price,
+                            'share_price': price,
+                            'notional': notional,
+                            'pnl': pnl,
+                            'qty': qty
+                        }
                 )
             else:
                 print "Unfilled order; $%s total, %s qty" % (pnl, qty)
-
-            time.sleep(1)

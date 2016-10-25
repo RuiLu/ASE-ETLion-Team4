@@ -9,7 +9,7 @@ from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
-from flask_socketio import SocketIO, disconnect
+from flask_socketio import SocketIO, disconnect, emit
 
 from forms import SignupForm, LoginForm
 
@@ -23,16 +23,13 @@ app = init_app()
 
 db.init_app(app)
 
-async_mode = None
+async_mode = "threading"
 socketio = SocketIO(app, async_mode=async_mode)
+thread = None
 
 @socketio.on('connect')
 def test_connect():
-    print "Connected!!!!!!!!!!!!!!!!!!!!!!!"
-
-@socketio.on('my_event')
-def test_message(message):
-    print message
+    print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
 
 @socketio.on('calculate')
 def calculate(post_params):
@@ -99,7 +96,6 @@ def login():
 def logout():
     session.pop('email', None)
     return redirect('/')
-
 
 if __name__ == "__main__":
     import click
