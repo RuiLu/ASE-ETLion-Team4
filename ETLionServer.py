@@ -85,13 +85,14 @@ def calculate(post_params):
         time.sleep(1)
     
 @app.route('/')
+@app.route('/index')
 def index():
     return render_template("index.html", async_mode=socketio.async_mode)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if 'email' in session:
-        return redirect(url_for('.index', username=session['email']))
+        return redirect(url_for('index', username=session['email']))
 
     form = SignupForm()
 
@@ -104,7 +105,7 @@ def signup():
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect(url_for('.index', username=newuser.email))
+            return redirect(url_for('index', username=newuser.email))
 
     elif request.method == "GET":
         return render_template('signup.html', form=form)
@@ -112,7 +113,7 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if 'email' in session:
-        return redirect(url_for('.index', username=session['email']))
+        return redirect(url_for('index', username=session['email']))
 
     form = LoginForm()
 
@@ -126,7 +127,7 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user is not None and user.check_password(password):
                 session['email'] = form.email.data
-                return redirect(url_for('.index', username=form.email.data))
+                return redirect(url_for('index', username=form.email.data))
             else:
                 return redirect(url_for('login'))
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     @click.command()
     @click.argument('HOST', default='0.0.0.0')
     @click.argument('PORT', default=4156, type=int)
-    def socketio_app_run(debug, host, port):
+    def socketio_app_run(host, port):
         try:
             HOST, PORT = host, port
             print "ET Lion Server Running On %s:%d" % (HOST, PORT)
