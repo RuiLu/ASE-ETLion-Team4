@@ -107,7 +107,10 @@ def calculate(post_params):
     
 @app.route('/')
 def index():
-    return render_template("index.html", async_mode=socketio.async_mode)
+    if 'email' in session:
+        return render_template("index.html", async_mode=socketio.async_mode, username=session['email'])
+    else:
+        return render_template("index.html", async_mode=socketio.async_mode)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -125,7 +128,7 @@ def signup():
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect(url_for('.index', username=newuser.email))
+            return redirect(url_for('.index', username=session['email']))
 
     elif request.method == "GET":
         return render_template('signup.html', form=form)
@@ -147,7 +150,7 @@ def login():
             user = User.query.filter_by(email=email).first()
             if user is not None and user.check_password(password):
                 session['email'] = form.email.data
-                return redirect(url_for('.index', username=form.email.data))
+                return redirect(url_for('.index', username=session['email']))
             else:
                 return redirect(url_for('login'))
 
