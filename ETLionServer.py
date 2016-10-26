@@ -64,7 +64,7 @@ def calculate(post_params):
         # Update the PnL if the order was filled.
         if order['avg_price'] > 0:
             price    = order['avg_price']
-            notional = float(price * order_size)
+            notional = price * order_size
             pnl += notional
             qty -= order_size
             print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
