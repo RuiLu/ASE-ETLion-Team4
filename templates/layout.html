@@ -27,18 +27,10 @@
                 tradeInfo = '<tr><td>'+count+'</td><td>Sell</td><td>'+param.share_price+'</td><td>'+param.order_size+'</td><td>'+param.notional+'</td><td>Success</td></tr>'
                 $("#trades-table").find('tbody').prepend(tradeInfo);
                 count++;
-                pnl += param.notional;
-                
+                pnl += param.notional;                
+                soldShares += param.order_size;
                 $("span#pnl").html(pnl);
-      //           $('#trade_log')
-      //           .append(
-      //           	'<br>' + $('<div/>').text(
-      //           		"Executing 'sell' of " + param.order_size + ' @ ' + param.discount_price +
-						// "Sold " + param.order_size + " for $" + param.share_price + 
-						// "/share, $" + param.notional + " notional " +
-						// "PnL $" + param.pnl + ", Qty " + param.qty
-      //           	).html()
-      //           );
+                $("span#percentage").html(Math.round(soldShares * 100 / param.total_qty));
             });
             $('form#order-form').submit(function(event) {
                 socket.emit('calculate', {
@@ -47,6 +39,8 @@
                     inventory: $('#inventory').val(),
                     trading_frequency: $('#trading_frequency').val(),
                 });
+                soldShares = 0;
+                $("span#percentage").html(0);
                 return false;
             });
             $('form#disconnect').submit(function(event) {

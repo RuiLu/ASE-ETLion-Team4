@@ -43,7 +43,7 @@ def calculate(post_params):
     trading_freq = int(post_params[TRADING_FREQUENCY])
 
     # Start with all shares and no profit
-    qty = inventory
+    total_qty = qty = inventory
     pnl = 0
 
     # Repeat the strategy until we run out of shares.
@@ -76,7 +76,7 @@ def calculate(post_params):
                     'share_price': price,
                     'notional': notional,
                     'pnl': pnl,
-                    'qty': qty
+                    'total_qty': total_qty
                 }
             )
         else:
