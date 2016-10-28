@@ -83,18 +83,21 @@ def calculate(post_params):
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
 
         time.sleep(1)
-    
+
+def is_user_in_session():
+    return ('email' in session and 'username' in session)
+
 @app.route('/')
 @app.route('/index')
 def index():
-    if 'email' in session and 'username' in session:
+    if is_user_in_session():
         return render_template("index.html", async_mode=socketio.async_mode, username=session['username'])
     else:
         return render_template("index.html", async_mode=socketio.async_mode)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    if 'email' in session:
+    if is_user_in_session():
         return redirect(url_for('index', username=session['username']))
 
     form = SignupForm()
@@ -115,7 +118,7 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if 'email' in session and 'username' in session:
+    if is_user_in_session():
         return redirect(url_for('index', username=session['username']))
 
     form = LoginForm()
