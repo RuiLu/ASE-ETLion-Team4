@@ -28,5 +28,5 @@ Team: ET-Lion
 Boostrap, jQuery, Javascript
 
 #### Backend:
-Server: Socket-IO (Async Display), Flask(Server Framework)
+Server: Socket-IO (Async Display), Flask(Server Framework)<br>
 Database: PostgreSQL
