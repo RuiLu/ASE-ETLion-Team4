@@ -91,14 +91,22 @@ def is_user_in_session():
 @app.route('/index')
 def index():
     if is_user_in_session():
-        return render_template("index.html", async_mode=socketio.async_mode, username=session['username'])
+        return redirect(url_for('trade', username=session['username']))
     else:
         return render_template("index.html", async_mode=socketio.async_mode)
+
+@app.route('/trade')
+def trade():
+    if is_user_in_session():
+        return render_template("trade.html", async_mode=socketio.async_mode, username=session['username'])
+    else:
+        return render_template("index.html", async_mode=socketio.async_mode)
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if is_user_in_session():
-        return redirect(url_for('index', username=session['username']))
+        return redirect(url_for('trade', username=session['username']))
 
     form = SignupForm()
 
@@ -119,7 +127,7 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if is_user_in_session():
-        return redirect(url_for('index', username=session['username']))
+        return redirect(url_for('trade', username=session['username']))
 
     form = LoginForm()
 
