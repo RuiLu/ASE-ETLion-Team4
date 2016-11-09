@@ -2,64 +2,28 @@
 
 {% block content %}
 
-    <main class="container">
-        <div class="sign col-md-4 col-md-offset-8">
-            {% if not username %}
-                <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
-                <a href="{{ url_for('login') }}" class="btn">Log In</a>
-            {% else %}
-                <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
-            {% endif %}
-        </div>
-        <div class="section-content">
-            <div class="intro">
-                <h1>Hi, Trader {{ username }}</h1>
-                <h2>Please Enter Following Parameters You Want To Start Trading</h2>
-            </div>
-
-            <div class="cards">
-                <form id="order-form" method="POST"  method="POST" action="#">
-                    <label>Order Discount</label>
-            		<input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
-                    <br/>
-                    <label>Order Size</label>
-                    <input type="text" name="order_size" id="order_size" placeholder="Order Size">
-                    <br/>
-                    <label>Inventory</label>
-                    <input type="text" name="inventory" id="inventory" placeholder="Inventory">
-                    <br/>
-                    <label>Trading Frequency</label>
-                    <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
-                    <div class="btn-div">
-                        <input class="btn" type="submit" value="Place Order" name="Place Order">
-                    </div>
-                </form>
-                <div class="card trades" style="overflow: scroll;">
-                    <table class="table table-striped" id="trades-table" class="tablesorter" >
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Price ($)</th>
-                            <th>Shares</th>
-                            <th>Notional</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody id="trade_log">
-                        </tbody>
-                    </table>
-
-                    <div id="summary">
-                        <div><p>Total Progress: <span id="percentage">0.0</span>%</p></div>
-                        <div><p>PNL: <span id="pnl">0</scan></p></div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-    </main>
+<video autoplay loop muted>
+    <source src="static/videos/background.mp4" type="video/mp4">
+</video>
+<div class="sign col-md-4 col-md-offset-8">
+    {% if not username %}
+        <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
+        <a href="{{ url_for('login') }}" class="btn">Log In</a>
+    {% else %}
+        <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+    {% endif %}
+</div>
+<div id="hp-hello">
+  <h1 class="ui large header">
+    {% if username %}
+      Hi, {{username}}
+    {% else %}
+      Welcome to ETLion Trading System!
+    {% endif %}
+  </h1>
+  <h2 class="ui large header">
+    Place The Order Automatically For You!
+  </h2>
+</div>
 
 {% endblock %}
