@@ -36,22 +36,14 @@ def test_connect():
 @socketio.on('calculate')
 def calculate(post_params):
     print post_params
-    params = {
-        ORDER_DISCOUNT: int(post_params[ORDER_DISCOUNT]), 
-        ORDER_SIZE: int(post_params[ORDER_SIZE]), 
-        INVENTORY: int(post_params[INVENTORY]), 
-        TRADING_FREQUENCY: int(post_params[TRADING_FREQUENCY])
-    }
 
     order_discount = int(post_params[ORDER_DISCOUNT])
     order_size = int(post_params[ORDER_SIZE])
     inventory = int(post_params[INVENTORY])
     trading_freq = int(post_params[TRADING_FREQUENCY])
-    # et_lion_core = ETLionCore(**params)
-    # et_lion_core.trade()
 
     # Start with all shares and no profit
-    qty = inventory
+    total_qty = qty = inventory
     pnl = 0
 
     # Repeat the strategy until we run out of shares.
@@ -72,7 +64,7 @@ def calculate(post_params):
         # Update the PnL if the order was filled.
         if order['avg_price'] > 0:
             price    = order['avg_price']
-            notional = float(price * order_size)
+            notional = price * order_size
             pnl += notional
             qty -= order_size
             print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
@@ -84,7 +76,7 @@ def calculate(post_params):
                     'share_price': price,
                     'notional': notional,
                     'pnl': pnl,
-                    'qty': qty
+                    'total_qty': total_qty
                 }
             )
         else:
@@ -92,27 +84,29 @@ def calculate(post_params):
 
         time.sleep(1)
 
-    # while True :
-    #     emit('trade_log',
-    #         {
-    #             'order_size': 1,
-    #             'discount_price': 10,
-    #             'share_price': 200,
-    #             'notional': 11,
-    #             'pnl': 11,
-    #             'qty': 11
-    #         }
-    #     )
-    #     time.sleep(5)
-    
+def is_user_in_session():
+    return ('email' in session and 'username' in session)
+
 @app.route('/')
+@app.route('/index')
 def index():
-    return render_template("index.html", async_mode=socketio.async_mode)
+    if is_user_in_session():
+        return redirect(url_for('trade', username=session['username']))
+    else:
+        return render_template("index.html", async_mode=socketio.async_mode)
+
+@app.route('/trade')
+def trade():
+    if is_user_in_session():
+        return render_template("trade.html", async_mode=socketio.async_mode, username=session['username'])
+    else:
+        return render_template("index.html", async_mode=socketio.async_mode)
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    if 'email' in session:
-        return redirect('/')
+    if is_user_in_session():
+        return redirect(url_for('trade', username=session['username']))
 
     form = SignupForm()
 
@@ -120,20 +114,20 @@ def signup():
         if not form.validate():
             return render_template('signup.html', form=form)
         else:
-            newuser = User(form.first_name.data, form.last_name.data, form.email.data, form.password.data)
+            newuser = User(form.firstname.data, form.lastname.data, form.email.data, form.password.data)
             db.session.add(newuser)
             db.session.commit()
 
             session['email'] = newuser.email
-            return redirect('/')
-
+            session['username'] = newuser.firstname + ' ' + newuser.lastname
+            return redirect(url_for('index', username=session['username']))
     elif request.method == "GET":
         return render_template('signup.html', form=form)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if 'email' in session:
-        return redirect('/')
+    if is_user_in_session():
+        return redirect(url_for('trade', username=session['username']))
 
     form = LoginForm()
 
@@ -143,11 +137,12 @@ def login():
         else:
             email = form.email.data
             password = form.password.data
-
             user = User.query.filter_by(email=email).first()
+            print user
             if user is not None and user.check_password(password):
-                session['email'] = form.email.data
-                return redirect('/')
+                session['email'] = user.email
+                session['username'] = user.firstname + ' ' + user.lastname
+                return redirect(url_for('index', username=session['username']))
             else:
                 return redirect(url_for('login'))
 
@@ -157,18 +152,22 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop('email', None)
+    session.pop('username', None)
     return redirect('/')
 
 if __name__ == "__main__":
     import click
 
     @click.command()
-    @click.option('--debug', is_flag=True)
     @click.argument('HOST', default='0.0.0.0')
     @click.argument('PORT', default=4156, type=int)
-    def socketio_app_run(debug, host, port):
-        HOST, PORT = host, port
-        print "ET Lion Server Running On %s:%d" % (HOST, PORT)
-        socketio.run(app, host=HOST, port=PORT, debug=debug)
+    def socketio_app_run(host, port):
+        try:
+            HOST, PORT = host, port
+            print "ET Lion Server Running On %s:%d" % (HOST, PORT)
+            socketio.run(app, host=HOST, port=PORT, debug=True)
+        except KeyboardInterrupt:
+            print "Ctrl-c received! Sending kill to threads..."
+            socketio.stop()
 
     socketio_app_run()

@@ -2,11 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8"/>
-    <title>Hello React!</title>
+    <title>Welcome to ETLion!</title>
     <!-- styles -->
     <link rel="stylesheet" type="text/css"
           href="{{ url_for('static', filename='bower_components/bootstrap/dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" type="text/css" href="static/css/style.css"> 
+    
     <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
     <script type="text/javascript" charset="utf-8">
@@ -19,21 +21,18 @@
             // The callback function is invoked whenever the server emits data
             // to the client. The data is then displayed in the "Received"
             // section of the page.
-            var count = 3;
+            var count = 1;
+            var pnl = 0;
+            var soldShares = 0;
 
             socket.on('trade_log', function(param) {
                 tradeInfo = '<tr><td>'+count+'</td><td>Sell</td><td>'+param.share_price+'</td><td>'+param.order_size+'</td><td>'+param.notional+'</td><td>Success</td></tr>'
                 $("#trades-table").find('tbody').prepend(tradeInfo);
                 count++;
-      //           $('#trade_log')
-      //           .append(
-      //           	'<br>' + $('<div/>').text(
-      //           		"Executing 'sell' of " + param.order_size + ' @ ' + param.discount_price +
-						// "Sold " + param.order_size + " for $" + param.share_price + 
-						// "/share, $" + param.notional + " notional " +
-						// "PnL $" + param.pnl + ", Qty " + param.qty
-      //           	).html()
-      //           );
+                pnl += param.notional;                
+                soldShares += param.order_size;
+                $("span#pnl").html(pnl);
+                $("span#percentage").html(Math.round(soldShares * 100 / param.total_qty));
             });
             $('form#order-form').submit(function(event) {
                 socket.emit('calculate', {
@@ -42,17 +41,21 @@
                     inventory: $('#inventory').val(),
                     trading_frequency: $('#trading_frequency').val(),
                 });
+                soldShares = 0;
+                $("span#percentage").html(0);
                 return false;
             });
-            $('form#disconnect').submit(function(event) {
-                socket.emit('disconnect_request');
+            $('a#id').click(function(event) {
+                socket.emit('logout');
                 return false;
             });
         });
     </script>
 </head>
 <body>
-
+<video autoplay loop muted>
+    <source src="static/videos/background.mp4" type="video/mp4">
+</video>
 {% block content %}
 {% endblock %}
 
