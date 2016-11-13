@@ -100,7 +100,7 @@ def trade():
     if is_user_in_session():
         return render_template("trade.html", async_mode=socketio.async_mode, username=session['username'])
     else:
-        return render_template("index.html", async_mode=socketio.async_mode)
+        return redirect(url_for('index', username=session['username']))
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -108,7 +108,7 @@ def signup():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
-    form = SignupForm()
+    form = SignupForm(request.form)
 
     if request.method == "POST":
         if not form.validate():
@@ -129,22 +129,18 @@ def login():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
-    form = LoginForm()
+    form = LoginForm(request.form)
 
     if request.method == "POST":
-        if not form.validate():
-            return render_template("login.html", form=form)
+        email = form.email.data
+        password = form.password.data
+        user = User.query.filter_by(email=email).first()
+        if user is not None and user.check_password(password):
+            session['email'] = user.email
+            session['username'] = user.firstname + ' ' + user.lastname
+            return redirect(url_for('index', username=session['username']))
         else:
-            email = form.email.data
-            password = form.password.data
-            user = User.query.filter_by(email=email).first()
-            print user
-            if user is not None and user.check_password(password):
-                session['email'] = user.email
-                session['username'] = user.firstname + ' ' + user.lastname
-                return redirect(url_for('index', username=session['username']))
-            else:
-                return redirect(url_for('login'))
+            return redirect(url_for('login'))
 
     elif request.method == 'GET':
         return render_template('login.html', form=form)
@@ -159,7 +155,7 @@ if __name__ == "__main__":
     import click
 
     @click.command()
-    @click.argument('HOST', default='0.0.0.0')
+    @click.argument('HOST', default='127.0.0.1')
     @click.argument('PORT', default=4156, type=int)
     def socketio_app_run(host, port):
         try:
