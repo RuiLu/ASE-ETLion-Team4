@@ -1,7 +1,9 @@
-import urllib2
-import time
+import errno
 import json
+import time
 import random
+import socket
+import urllib2
 
 from flask import Flask
 from flask import request
@@ -48,41 +50,48 @@ def calculate(post_params):
 
     # Repeat the strategy until we run out of shares.
     while qty > 0:
-        # Query the price once every N seconds.
-        time.sleep(trading_freq)
+        try:
+            # Query the price once every N seconds.
+            time.sleep(trading_freq)
 
-        quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
-        price = float(quote['top_bid']['price'])
-         
-        # Attempt to execute a sell order.
-        discount_price = price - order_discount
-        order_args = (order_size, discount_price)
-        print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
-        url   = ORDER_URL.format(random.random(), *order_args)
-        order = json.loads(urllib2.urlopen(url).read())
+            quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
+            price = float(quote['top_bid']['price'])
+             
+            # Attempt to execute a sell order.
+            discount_price = price - order_discount
+            order_args = (order_size, discount_price)
+            print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
+            url   = ORDER_URL.format(random.random(), *order_args)
+            order = json.loads(urllib2.urlopen(url).read())
 
-        # Update the PnL if the order was filled.
-        if order['avg_price'] > 0:
-            price    = order['avg_price']
-            notional = price * order_size
-            pnl += notional
-            qty -= order_size
-            print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
-            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-            emit('trade_log',
-                {
-                    'order_size': order_size,
-                    'discount_price': discount_price,
-                    'share_price': price,
-                    'notional': notional,
-                    'pnl': pnl,
-                    'total_qty': total_qty
-                }
-            )
-        else:
-            print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+            # Update the PnL if the order was filled.
+            if order['avg_price'] > 0:
+                price    = order['avg_price']
+                notional = price * order_size
+                pnl += notional
+                qty -= order_size
+                print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
+                print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+                emit('trade_log',
+                        {
+                            'order_size': order_size,
+                            'discount_price': discount_price,
+                            'share_price': price,
+                            'notional': notional,
+                            'pnl': pnl,
+                            'total_qty': total_qty
+                        }
+                )
+            else:
+                print "Unfilled order; $%s total, %s qty" % (pnl, qty)
 
-        time.sleep(1)
+            time.sleep(1)
+
+        except socket.error, e:
+            print "######## socket error", e
+        except IOError, e:
+            print "######## IOError", e
+
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
