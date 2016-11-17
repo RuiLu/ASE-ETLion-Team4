@@ -22,7 +22,6 @@ from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY, QUERY
 from ETLionCore import ETLionCore
 from AppUtil import init_app
 
-
 app = init_app()
 
 db.init_app(app)
