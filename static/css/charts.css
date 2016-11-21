@@ -1,0 +1,25 @@
+
+#chart {
+    height: 300px;
+    width: 600px;
+    background-color: green;
+}
+
+.line {
+    stroke: red;
+    stroke-width: 1;
+    fill: none;
+}
+
+.y.axis .minor {
+    stroke-opacity: 1;
+}
+
+g.tick line {
+    stroke: blue;
+}
+
+g.tick text {
+    font-size: 12px;
+    fill: white;
+}
