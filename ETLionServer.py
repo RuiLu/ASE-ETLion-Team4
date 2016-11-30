@@ -18,7 +18,8 @@ from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
-from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY, QUERY_URL, ORDER_URL
+from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
+from Enum import TRADING_FREQUENCY, QUERY_URL, ORDER_URL
 from ETLionCore import ETLionCore
 from AppUtil import init_app
 
@@ -53,7 +54,9 @@ def calculate(post_params):
             # Query the price once every N seconds.
             time.sleep(trading_freq)
 
-            quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
+            quote = json.loads(
+                urllib2.urlopen(QUERY_URL.format(random.random())).read()
+            )
             price = float(quote['top_bid']['price'])
              
             # Attempt to execute a sell order.
@@ -66,10 +69,12 @@ def calculate(post_params):
             # Update the PnL if the order was filled.
             if order['avg_price'] > 0:
                 price    = order['avg_price']
-                notional = price * order_size
+                notional = int(price * order_size)
                 pnl += notional
                 qty -= order_size
-                print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
+                print "Sold {:,} for ${:,}/share, ${:,} notional".format(
+                    order_size, price, notional
+                )
                 print "PnL ${:,}, Qty {:,}".format(pnl, qty)
                 emit('trade_log',
                         {
@@ -106,7 +111,11 @@ def index():
 @app.route('/trade')
 def trade():
     if is_user_in_session():
-        return render_template("trade.html", async_mode=socketio.async_mode, username=session['username'])
+        return render_template(
+            "trade.html",
+            async_mode=socketio.async_mode,
+            username=session['username']
+        )
     else:
         return redirect(url_for('index', username=session['username']))
 
@@ -122,7 +131,12 @@ def signup():
         if not form.validate():
             return render_template('signup.html', form=form)
         else:
-            newuser = User(form.firstname.data, form.lastname.data, form.email.data, form.password.data)
+            newuser = User(
+                form.firstname.data, 
+                form.lastname.data, 
+                form.email.data, 
+                form.password.data
+            )
             db.session.add(newuser)
             db.session.commit()
 
