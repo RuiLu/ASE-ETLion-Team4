@@ -1,7 +1,11 @@
-import urllib2
-import time
+import eventlet
+eventlet.monkey_patch()
+
 import json
+import time
 import random
+import socket
+import urllib2
 
 from flask import Flask
 from flask import request
@@ -10,37 +14,36 @@ from flask import redirect
 from flask import session
 from flask import url_for
 
-from flask_socketio import SocketIO, disconnect, emit
+from flask_socketio import SocketIO
+from flask_socketio import disconnect, emit
 
 from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
-from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY, QUERY_URL, ORDER_URL
-from ETLionCore import ETLionCore
+from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
+from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
 from AppUtil import init_app
 
 
-app = init_app()
+app = Flask(__name__)
+app.config["DEBUG"] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.secret_key = "development-key"
 
 db.init_app(app)
 
-async_mode = "threading"
+async_mode = None
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
+is_order_canceled = False
 
-@socketio.on('connect')
-def test_connect():
-    print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
-
-@socketio.on('calculate')
-def calculate(post_params):
-    print post_params
-
-    order_discount = int(post_params[ORDER_DISCOUNT])
-    order_size = int(post_params[ORDER_SIZE])
-    inventory = int(post_params[INVENTORY])
-    trading_freq = int(post_params[TRADING_FREQUENCY])
+def background_thread_place_order(order_discount, order_size, inventory):
+    order_discount = int(order_discount)
+    order_size = int(order_size)
+    inventory = int(inventory)
+    trading_freq = 3
 
     # Start with all shares and no profit
     total_qty = qty = inventory
@@ -48,10 +51,16 @@ def calculate(post_params):
 
     # Repeat the strategy until we run out of shares.
     while qty > 0:
+        global is_order_canceled
+        if is_order_canceled:
+            is_order_canceled = False
+            break
         # Query the price once every N seconds.
-        time.sleep(trading_freq)
+        socketio.sleep(trading_freq)
 
-        quote = json.loads(urllib2.urlopen(QUERY_URL.format(random.random())).read())
+        quote = json.loads(
+            urllib2.urlopen(QUERY_URL.format(random.random())).read()
+        )
         price = float(quote['top_bid']['price'])
          
         # Attempt to execute a sell order.
@@ -62,27 +71,50 @@ def calculate(post_params):
         order = json.loads(urllib2.urlopen(url).read())
 
         # Update the PnL if the order was filled.
-        if order['avg_price'] > 0:
+        if order['avg_price'] <= 0:
+            print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+        else:
             price    = order['avg_price']
-            notional = price * order_size
+            notional = int(price * order_size)
             pnl += notional
             qty -= order_size
-            print "Sold {:,} for ${:,}/share, ${:,} notional".format(order_size, price, notional)
-            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-            emit('trade_log',
-                {
-                    'order_size': order_size,
-                    'discount_price': discount_price,
-                    'share_price': price,
-                    'notional': notional,
-                    'pnl': pnl,
-                    'total_qty': total_qty
-                }
+            print "Sold {:,} for ${:,}/share, ${:,} notional".format(
+                order_size, price, notional
             )
-        else:
-            print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+            socketio.emit('trade_log',
+                    {
+                        'order_size': order_size,
+                        'discount_price': discount_price,
+                        'share_price': price,
+                        'notional': notional,
+                        'pnl': pnl,
+                        'total_qty': total_qty
+                    }
+            )
 
-        time.sleep(1)
+@socketio.on('connect')
+def test_connect():
+    print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
+
+@socketio.on('cancel_order')
+def cancel():
+    # print "Disconnected with Socket-IO client side."
+    # disconnect()
+    global is_order_canceled
+    is_order_canceled = True
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected', request.sid)
+
+@socketio.on('calculate')
+def calculate(post_params):
+    print post_params
+    global thread
+    thread = socketio.start_background_task(
+        target=background_thread_place_order, **post_params
+    )
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -98,53 +130,59 @@ def index():
 @app.route('/trade')
 def trade():
     if is_user_in_session():
-        return render_template("trade.html", async_mode=socketio.async_mode, username=session['username'])
+        return render_template(
+            "trade.html",
+            async_mode=socketio.async_mode,
+            username=session['username']
+        )
     else:
-        return render_template("index.html", async_mode=socketio.async_mode)
+        return redirect(url_for('index', username=session['username']))
 
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=[GET, POST])
 def signup():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
-    form = SignupForm()
+    form = SignupForm(request.form)
 
-    if request.method == "POST":
+    if request.method == POST:
         if not form.validate():
             return render_template('signup.html', form=form)
         else:
-            newuser = User(form.firstname.data, form.lastname.data, form.email.data, form.password.data)
+            newuser = User(
+                form.firstname.data, 
+                form.lastname.data, 
+                form.email.data, 
+                form.password.data
+            )
             db.session.add(newuser)
             db.session.commit()
 
             session['email'] = newuser.email
             session['username'] = newuser.firstname + ' ' + newuser.lastname
             return redirect(url_for('index', username=session['username']))
-    elif request.method == "GET":
+
+    elif request.method == GET:
         return render_template('signup.html', form=form)
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=[GET, POST])
 def login():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
-    form = LoginForm()
+    form = LoginForm(request.form)
 
-    if request.method == "POST":
-        if not form.validate():
-            return render_template("login.html", form=form)
+    if request.method == POST:
+        email = form.email.data
+        password = form.password.data
+        user = User.query.filter_by(email=email).first()
+        if user is not None and user.check_password(password):
+            session['email'] = user.email
+            session['username'] = user.firstname + ' ' + user.lastname
+            return redirect(url_for('index', username=session['username']))
         else:
-            email = form.email.data
-            password = form.password.data
-            user = User.query.filter_by(email=email).first()
-            print user
-            if user is not None and user.check_password(password):
-                session['email'] = user.email
-                session['username'] = user.firstname + ' ' + user.lastname
-                return redirect(url_for('index', username=session['username']))
-            else:
-                return redirect(url_for('login'))
+            return redirect(url_for('login'))
 
     elif request.method == 'GET':
         return render_template('login.html', form=form)
@@ -159,7 +197,7 @@ if __name__ == "__main__":
     import click
 
     @click.command()
-    @click.argument('HOST', default='0.0.0.0')
+    @click.argument('HOST', default='127.0.0.1')
     @click.argument('PORT', default=4156, type=int)
     def socketio_app_run(host, port):
         try:

@@ -13,7 +13,7 @@
             </div>
 
             <div class="cards">
-                <form id="order-form" method="POST"  method="POST" action="#">
+                <form id="order-form" method="POST" action="#">
                     <label>Order Discount</label>
             		<input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
                     <br/>
@@ -23,10 +23,11 @@
                     <label>Inventory</label>
                     <input type="text" name="inventory" id="inventory" placeholder="Inventory">
                     <br/>
-                    <label>Trading Frequency</label>
-                    <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
                     <div class="btn-div">
                         <input class="btn" type="submit" value="Place Order" name="Place Order">
+                    </div>
+                    <div class="btn-div" id="cancel">
+                        <input class="btn" type="submit" value="Cancel Order" name="Cancel Order">
                     </div>
                 </form>
                 <div class="card trades" style="overflow: scroll;">
