@@ -1,53 +1,48 @@
+import eventlet
+eventlet.monkey_patch()
+
 import json
 import time
 import random
 import socket
 import urllib2
 
+from flask import Flask
 from flask import request
 from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
 
-from flask_socketio import SocketIO, disconnect, emit
+from flask_socketio import SocketIO
+from flask_socketio import disconnect, emit
 
 from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
 from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
-from Enum import TRADING_FREQUENCY, QUERY_URL, ORDER_URL
+from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
 from AppUtil import init_app
 
-app = init_app()
+
+app = Flask(__name__)
+app.config["DEBUG"] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.secret_key = "development-key"
 
 db.init_app(app)
 
-async_mode = "threading"
+async_mode = None
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
+is_order_canceled = False
 
-@socketio.on('connect')
-def test_connect():
-    print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
-
-@socketio.on('cancel_order')
-def cancel():
-    print "Disconnected with Socket-IO client side."
-    disconnect()
-
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected', request.sid)
-
-@socketio.on('calculate')
-def calculate(post_params):
-    print post_params
-
-    order_discount = int(post_params[ORDER_DISCOUNT])
-    order_size = int(post_params[ORDER_SIZE])
-    inventory = int(post_params[INVENTORY])
+def background_thread_place_order(order_discount, order_size, inventory):
+    order_discount = int(order_discount)
+    order_size = int(order_size)
+    inventory = int(inventory)
     trading_freq = 3
 
     # Start with all shares and no profit
@@ -56,52 +51,70 @@ def calculate(post_params):
 
     # Repeat the strategy until we run out of shares.
     while qty > 0:
-        try:
-            # Query the price once every N seconds.
-            time.sleep(trading_freq)
+        global is_order_canceled
+        if is_order_canceled:
+            is_order_canceled = False
+            break
+        # Query the price once every N seconds.
+        socketio.sleep(trading_freq)
 
-            quote = json.loads(
-                urllib2.urlopen(QUERY_URL.format(random.random())).read()
+        quote = json.loads(
+            urllib2.urlopen(QUERY_URL.format(random.random())).read()
+        )
+        price = float(quote['top_bid']['price'])
+         
+        # Attempt to execute a sell order.
+        discount_price = price - order_discount
+        order_args = (order_size, discount_price)
+        print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
+        url   = ORDER_URL.format(random.random(), *order_args)
+        order = json.loads(urllib2.urlopen(url).read())
+
+        # Update the PnL if the order was filled.
+        if order['avg_price'] <= 0:
+            print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+        else:
+            price    = order['avg_price']
+            notional = int(price * order_size)
+            pnl += notional
+            qty -= order_size
+            print "Sold {:,} for ${:,}/share, ${:,} notional".format(
+                order_size, price, notional
             )
-            price = float(quote['top_bid']['price'])
-             
-            # Attempt to execute a sell order.
-            discount_price = price - order_discount
-            order_args = (order_size, discount_price)
-            print "Executing 'sell' of {:,} @ {:,}".format(*order_args)
-            url   = ORDER_URL.format(random.random(), *order_args)
-            order = json.loads(urllib2.urlopen(url).read())
+            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+            socketio.emit('trade_log',
+                    {
+                        'order_size': order_size,
+                        'discount_price': discount_price,
+                        'share_price': price,
+                        'notional': notional,
+                        'pnl': pnl,
+                        'total_qty': total_qty
+                    }
+            )
 
-            # Update the PnL if the order was filled.
-            if order['avg_price'] > 0:
-                price    = order['avg_price']
-                notional = int(price * order_size)
-                pnl += notional
-                qty -= order_size
-                print "Sold {:,} for ${:,}/share, ${:,} notional".format(
-                    order_size, price, notional
-                )
-                print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-                emit('trade_log',
-                        {
-                            'order_size': order_size,
-                            'discount_price': discount_price,
-                            'share_price': price,
-                            'notional': notional,
-                            'pnl': pnl,
-                            'total_qty': total_qty
-                        }
-                )
-            else:
-                print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+@socketio.on('connect')
+def test_connect():
+    print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
 
-            time.sleep(1)
+@socketio.on('cancel_order')
+def cancel():
+    # print "Disconnected with Socket-IO client side."
+    # disconnect()
+    global is_order_canceled
+    is_order_canceled = True
 
-        except socket.error, e:
-            print "######## socket error", e
-        except IOError, e:
-            print "######## IOError", e
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected', request.sid)
 
+@socketio.on('calculate')
+def calculate(post_params):
+    print post_params
+    global thread
+    thread = socketio.start_background_task(
+        target=background_thread_place_order, **post_params
+    )
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -149,6 +162,7 @@ def signup():
             session['email'] = newuser.email
             session['username'] = newuser.firstname + ' ' + newuser.lastname
             return redirect(url_for('index', username=session['username']))
+
     elif request.method == GET:
         return render_template('signup.html', form=form)
 

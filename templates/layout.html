@@ -25,7 +25,6 @@
             var soldShares = 0;
 
             socket.on('trade_log', function(param) {
-                console.log(param);
                 tradeInfo = '<tr><td>'+count+'</td><td>Sell</td><td>'+param.share_price+'</td><td>'+param.order_size+'</td><td>'+param.notional+'</td><td>Success</td></tr>'
                 $("#trades-table").find('tbody').prepend(tradeInfo);
                 count++;
@@ -51,7 +50,6 @@
             });
             $('div#cancel').click(function(event) {
                 socket.emit('cancel_order');
-                console.log("cancel_order");
                 return false;
             });
         });
