@@ -1,11 +1,9 @@
-import errno
 import json
 import time
 import random
 import socket
 import urllib2
 
-from flask import Flask
 from flask import request
 from flask import render_template
 from flask import redirect
@@ -20,7 +18,6 @@ from models import db, User
 from Enum import POST, GET
 from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
 from Enum import TRADING_FREQUENCY, QUERY_URL, ORDER_URL
-from ETLionCore import ETLionCore
 from AppUtil import init_app
 
 app = init_app()
@@ -35,6 +32,15 @@ thread = None
 def test_connect():
     print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
 
+@socketio.on('cancel_order')
+def cancel():
+    print "Disconnected with Socket-IO client side."
+    disconnect()
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected', request.sid)
+
 @socketio.on('calculate')
 def calculate(post_params):
     print post_params
@@ -42,7 +48,7 @@ def calculate(post_params):
     order_discount = int(post_params[ORDER_DISCOUNT])
     order_size = int(post_params[ORDER_SIZE])
     inventory = int(post_params[INVENTORY])
-    trading_freq = int(post_params[TRADING_FREQUENCY])
+    trading_freq = 3
 
     # Start with all shares and no profit
     total_qty = qty = inventory
@@ -120,14 +126,14 @@ def trade():
         return redirect(url_for('index', username=session['username']))
 
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=[GET, POST])
 def signup():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
     form = SignupForm(request.form)
 
-    if request.method == "POST":
+    if request.method == POST:
         if not form.validate():
             return render_template('signup.html', form=form)
         else:
@@ -143,17 +149,17 @@ def signup():
             session['email'] = newuser.email
             session['username'] = newuser.firstname + ' ' + newuser.lastname
             return redirect(url_for('index', username=session['username']))
-    elif request.method == "GET":
+    elif request.method == GET:
         return render_template('signup.html', form=form)
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=[GET, POST])
 def login():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
     form = LoginForm(request.form)
 
-    if request.method == "POST":
+    if request.method == POST:
         email = form.email.data
         password = form.password.data
         user = User.query.filter_by(email=email).first()

@@ -49,6 +49,11 @@
                 socket.emit('logout');
                 return false;
             });
+            $('div#cancel').click(function(event) {
+                socket.emit('cancel_order');
+                console.log("cancel_order");
+                return false;
+            });
         });
     </script>
 </head>
@@ -58,11 +63,5 @@
 </video>
 {% block content %}
 {% endblock %}
-
-<script src="{{ url_for('static', filename='bower_components/react/react.min.js') }}"></script>
-<script src="{{ url_for('static', filename='bower_components/react/react-dom.min.js') }}"></script>
-<script type="text/babel" src="{{ url_for('static', filename='scripts/js/main.js') }}"></script>
-
-<script src="https://unpkg.com/babel-core@5.8.38/browser.min.js"></script>
 </body>
 </html>
