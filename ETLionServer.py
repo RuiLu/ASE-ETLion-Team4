@@ -4,6 +4,8 @@ import time
 import random
 import socket
 import urllib2
+from datetime import datetime
+from json import dumps
 
 from flask import Flask
 from flask import request
@@ -22,6 +24,15 @@ from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY, TRADING_FREQUENCY, QUERY
 from ETLionCore import ETLionCore
 from AppUtil import init_app
 
+
+def json_serial(obj):
+
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
 
 app = init_app()
 
@@ -67,6 +78,8 @@ def calculate(post_params):
             # Update the PnL if the order was filled.
             if order['avg_price'] > 0:
                 price    = order['avg_price']
+                timestamp = dumps(datetime.now(), default=json_serial)
+
                 notional = price * order_size
                 pnl += notional
                 qty -= order_size
@@ -79,7 +92,8 @@ def calculate(post_params):
                             'share_price': price,
                             'notional': notional,
                             'pnl': pnl,
-                            'total_qty': total_qty
+                            'total_qty': total_qty,
+                            'timestamp': timestamp
                         }
                 )
             else:
