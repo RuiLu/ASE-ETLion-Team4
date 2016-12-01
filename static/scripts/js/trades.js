@@ -1,8 +1,10 @@
+"use strict";
+
 $(document).ready(function () {
     // Connect to the Socket.IO server.
     // The connection URL has the following format:
     //     http[s]://<domain>:<port>
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect("http://" + document.domain + ":" + location.port);
     // Event handler for server sent data.
     // The callback function is invoked whenever the server emits data
     // to the client. The data is then displayed in the "Received"
@@ -10,6 +12,7 @@ $(document).ready(function () {
     var count = 1;
     var pnl = 0;
     var soldShares = 0;
+    var tradeInfo;
 
     var dataArray = [];
     var dataYears = [];
@@ -18,11 +21,11 @@ $(document).ready(function () {
     // dataYears = ['2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008'];
 
 
-    socket.on('trade_log', function (param) {
+    socket.on("trade_log", function (param) {
         console.log(param);
-        tradeInfo = '<tr><td>' + count + '</td><td>Sell</td><td>' + param.share_price + '</td><td>' + param.order_size + '</td><td>' + param.notional + '</td><td>Success</td></tr>'
-        $("#trades-table").find('tbody').prepend(tradeInfo);
-        count++;
+        tradeInfo = "<tr><td>" + count + "</td><td>Sell</td><td>" + param.share_price + "</td><td>" + param.order_size + "</td><td>" + param.notional + "</td><td>Success</td></tr>";
+        $("#trades-table").find("tbody").prepend(tradeInfo);
+        count = count + 1;
         pnl += param.notional;
         soldShares += param.order_size;
         $("span#pnl").html(pnl);
@@ -37,23 +40,23 @@ $(document).ready(function () {
 
         setInterval(function () {
             update(dataArray, dataYears);
-        }, 2000);
+        }, 500);
     });
 
-    $('form#order-form').submit(function (event) {
-        socket.emit('calculate', {
-            order_discount: $('#order_discount').val(),
-            order_size: $('#order_size').val(),
-            inventory: $('#inventory').val(),
-            trading_frequency: $('#trading_frequency').val(),
+    $("form#order-form").submit(function (event) {
+        socket.emit("calculate", {
+            order_discount: $("#order_discount").val(),
+            order_size: $("#order_size").val(),
+            inventory: $("#inventory").val(),
+            trading_frequency: $("#trading_frequency").val()
         });
         soldShares = 0;
         $("span#percentage").html(0);
         return false;
     });
 
-    $('a#id').click(function (event) {
-        socket.emit('logout');
+    $("a#id").click(function (event) {
+        socket.emit("logout");
         return false;
     });
 });
