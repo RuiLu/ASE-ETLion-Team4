@@ -1,6 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
-
 import json
 import time
 import random
@@ -25,12 +22,7 @@ from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
 from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
 from AppUtil import init_app
 
-
-app = Flask(__name__)
-app.config["DEBUG"] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.secret_key = "development-key"
+app = init_app()
 
 db.init_app(app)
 
