@@ -18,7 +18,6 @@ from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
-from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
 from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
 from AppUtil import init_app
 
@@ -30,11 +29,13 @@ socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
 
-def background_thread_place_order(order_discount, order_size, inventory):
+def background_thread_place_order(
+        order_discount, order_size, inventory, trading_frequency
+    ):
     order_discount = int(order_discount)
     order_size = int(order_size)
     inventory = int(inventory)
-    trading_freq = 3
+    trading_freq = int(trading_frequency)
 
     # Start with all shares and no profit
     total_qty = qty = inventory
@@ -84,16 +85,13 @@ def background_thread_place_order(order_discount, order_size, inventory):
                     }
             )
 
+def exec_cancel_order():
+    global is_order_canceled
+    is_order_canceled = True
+
 @socketio.on('connect')
 def test_connect():
     print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
-
-@socketio.on('cancel_order')
-def cancel():
-    # print "Disconnected with Socket-IO client side."
-    # disconnect()
-    global is_order_canceled
-    is_order_canceled = True
 
 @socketio.on('disconnect')
 def test_disconnect():
@@ -117,6 +115,10 @@ def index():
         return redirect(url_for('trade', username=session['username']))
     else:
         return render_template("index.html", async_mode=socketio.async_mode)
+
+@socketio.on('cancel_order')
+def cancel():
+    exec_cancel_order()
 
 @app.route('/trade')
 def trade():
@@ -182,6 +184,7 @@ def login():
 def logout():
     session.pop('email', None)
     session.pop('username', None)
+    exec_cancel_order()
     return redirect('/')
 
 if __name__ == "__main__":
