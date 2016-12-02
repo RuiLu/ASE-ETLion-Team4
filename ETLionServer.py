@@ -26,8 +26,7 @@ app = init_app()
 
 db.init_app(app)
 
-async_mode = None
-socketio = SocketIO(app, async_mode=async_mode)
+socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
 
