@@ -107,6 +107,7 @@ form input {
 .btn-div {
     margin: 20px;
     text-align: center;
+    float: left;
 }
 
 .btn {
