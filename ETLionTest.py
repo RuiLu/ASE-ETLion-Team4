@@ -9,6 +9,7 @@ from ETLionServer import app, socketio
 from ETLionServer import index, trade, signup, login, logout
 from ETLionServer import background_thread_place_order
 
+
 class ETLionServerTestCase(unittest.TestCase):
 
     def setUp(self):
