@@ -7,8 +7,9 @@ from flask import Flask
 
 from ETLionServer import app, socketio
 from ETLionServer import index, trade, signup, login, logout
+from ETLionServer import background_thread_place_order
 
-class ETLionSeresponseerTestCase(unittest.TestCase):
+class ETLionServerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.app = app
@@ -78,16 +79,23 @@ class ETLionSeresponseerTestCase(unittest.TestCase):
             self.app.config["PASSWORD"]
         )
         self.socketio_tester = socketio.test_client(self.app)
-        self.socketio_tester.emit(
-            "calculate",
-            {
-                "order_discount": self.app.config["ORDER_DISCOUNT"],
-                "order_size": self.app.config["ORDER_SIZE"],
-                "inventory": self.app.config["INVENTORY"],
-                "trading_frequency": self.app.config["TRADING_FREQ"]
-            },
-        )
-        receiveds = self.socketio_tester.get_received()
+        self.socketio_test_server = socketio.test_client(self.app)
+
+        post_params = {
+            "order_discount": self.app.config["ORDER_DISCOUNT"],
+            "order_size": self.app.config["ORDER_SIZE"],
+            "inventory": self.app.config["INVENTORY"],
+            "trading_frequency": self.app.config["TRADING_FREQ"]
+        }
+
+        # self.socketio_tester.start_background_task(
+        #     target=background_thread_place_order,
+        #     **post_params
+        # )
+
+        receiveds = background_thread_place_order(**post_params)
+        print receiveds
+
         self.assertEqual(
             len(receiveds),
             self.app.config["INVENTORY"] / self.app.config["ORDER_SIZE"]
