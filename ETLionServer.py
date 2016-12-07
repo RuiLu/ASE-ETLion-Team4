@@ -30,7 +30,7 @@ thread = None
 is_order_canceled = False
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, trading_frequency
+        order_discount, order_size, inventory, trading_frequency,
     ):
     order_discount = int(order_discount)
     order_size = int(order_size)
@@ -40,7 +40,6 @@ def background_thread_place_order(
     # Start with all shares and no profit
     total_qty = qty = inventory
     pnl = 0
-
     # Repeat the strategy until we run out of shares.
     while qty > 0:
         global is_order_canceled
@@ -49,12 +48,10 @@ def background_thread_place_order(
             break
         # Query the price once every N seconds.
         socketio.sleep(trading_freq)
-
         quote = json.loads(
             urllib2.urlopen(QUERY_URL.format(random.random())).read()
         )
         price = float(quote['top_bid']['price'])
-         
         # Attempt to execute a sell order.
         discount_price = price - order_discount
         order_args = (order_size, discount_price)
@@ -73,21 +70,24 @@ def background_thread_place_order(
             print "Sold {:,} for ${:,}/share, ${:,} notional".format(
                 order_size, price, notional
             )
+            emit_params = {
+                'order_size': order_size,
+                'discount_price': discount_price,
+                'share_price': price,
+                'notional': notional,
+                'pnl': pnl,
+                'total_qty': total_qty
+            }
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-            socketio.emit('trade_log',
-                    {
-                        'order_size': order_size,
-                        'discount_price': discount_price,
-                        'share_price': price,
-                        'notional': notional,
-                        'pnl': pnl,
-                        'total_qty': total_qty
-                    }
-            )
+            socketio.emit('trade_log', emit_params)
 
 def exec_cancel_order():
     global is_order_canceled
     is_order_canceled = True
+
+def exec_resume_order():
+    global is_order_canceled
+    is_order_canceled = False
 
 @socketio.on('connect')
 def test_connect():
@@ -99,11 +99,14 @@ def test_disconnect():
 
 @socketio.on('calculate')
 def calculate(post_params):
-    print post_params
-    global thread
-    thread = socketio.start_background_task(
-        target=background_thread_place_order, **post_params
-    )
+    if post_params.get("is_for_test"):
+        del post_params["is_for_test"]
+        background_thread_place_order(**post_params)
+    else:
+        global thread
+        thread = socketio.start_background_task(
+            target=background_thread_place_order, **post_params
+        )
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -122,18 +125,19 @@ def cancel():
 
 @app.route('/trade')
 def trade():
-    if is_user_in_session():
+    if not is_user_in_session():
+        return redirect(url_for('index', username=session['username']))
+    else:
         return render_template(
             "trade.html",
             async_mode=socketio.async_mode,
             username=session['username']
         )
-    else:
-        return redirect(url_for('index', username=session['username']))
-
 
 @app.route("/signup", methods=[GET, POST])
 def signup():
+    exec_resume_order()
+
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
@@ -161,6 +165,8 @@ def signup():
 
 @app.route("/login", methods=[GET, POST])
 def login():
+    exec_resume_order()
+
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 

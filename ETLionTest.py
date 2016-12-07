@@ -4,6 +4,7 @@ import urllib2
 import unittest
 
 from flask import Flask
+from engineio import server
 
 from ETLionServer import app, socketio
 from ETLionServer import index, trade, signup, login, logout
@@ -45,6 +46,9 @@ class ETLionServerTestCase(unittest.TestCase):
 
     def logout(self):
         return self.tester.get('/logout', follow_redirects=True)
+
+    def trade(self):
+        return self.tester.get('/calculate', )
     
     def test_index(self):
         response = self.index()
@@ -80,23 +84,15 @@ class ETLionServerTestCase(unittest.TestCase):
             self.app.config["PASSWORD"]
         )
         self.socketio_tester = socketio.test_client(self.app)
-        self.socketio_test_server = socketio.test_client(self.app)
-
         post_params = {
             "order_discount": self.app.config["ORDER_DISCOUNT"],
             "order_size": self.app.config["ORDER_SIZE"],
             "inventory": self.app.config["INVENTORY"],
-            "trading_frequency": self.app.config["TRADING_FREQ"]
+            "trading_frequency": self.app.config["TRADING_FREQ"],
+            "is_for_test": True
         }
-
-        # self.socketio_tester.start_background_task(
-        #     target=background_thread_place_order,
-        #     **post_params
-        # )
-
-        receiveds = background_thread_place_order(**post_params)
-        print receiveds
-
+        self.socketio_tester.emit("calculate", post_params)
+        receiveds = self.socketio_tester.get_received()
         self.assertEqual(
             len(receiveds),
             self.app.config["INVENTORY"] / self.app.config["ORDER_SIZE"]
@@ -141,7 +137,6 @@ class ETLionServerTestCase(unittest.TestCase):
                 received["name"],
                 "trade_log"
             )
-
         
 if __name__ == "__main__":
     unittest.main()
