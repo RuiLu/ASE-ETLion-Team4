@@ -1,4 +1,3 @@
-import time
 import numbers
 import urllib2
 import unittest

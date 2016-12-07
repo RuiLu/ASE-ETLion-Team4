@@ -1,5 +1,4 @@
 import json
-import time
 import random
 import socket
 import urllib2
