@@ -9,17 +9,20 @@ from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
-
+from flask_mail import Mail
+from flask_mail import Message
 from flask_socketio import SocketIO
 
-from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
-
-from models import db, User, Order, Trade
+from AppUtil import init_app
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
-from AppUtil import init_app
+from ETLionMail import get_email_html
+from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
+from models import db, User, Order, Trade
 
 app = init_app()
+
+mail = Mail(app)
 
 db.init_app(app)
 
@@ -27,10 +30,17 @@ socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
 
+def send_email_notification(recipients, username):
+    if not isinstance(recipients, list):
+        recipients = [recipients]
+    msg = Message("Your Order Complete Successfully.", recipients=recipients)
+    msg.html = get_email_html(username)
+    mail.send(msg)
+
 def json_serial(obj):
-
-    """JSON serializer for objects not serializable by default json code"""
-
+    """
+    JSON serializer for objects not serializable by default json code
+    """
     if isinstance(obj, datetime):
         serial = obj.isoformat()
         return serial
@@ -38,6 +48,7 @@ def json_serial(obj):
 
 def background_thread_place_order(
         order_discount, order_size, inventory, trading_frequency,
+        recipients=[], username="", is_for_test=False
     ):
     order_discount = int(order_discount)
     order_size = int(order_size)
@@ -92,6 +103,10 @@ def background_thread_place_order(
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
             socketio.emit('trade_log', emit_params)
 
+    if not is_for_test:
+        with app.test_request_context(): # wth does this mean?
+            send_email_notification(recipients, username)
+
 def exec_cancel_order():
     global is_order_canceled
     is_order_canceled = True
@@ -106,16 +121,16 @@ def test_connect():
 
 @socketio.on('disconnect')
 def test_disconnect():
-    print('Client disconnected', request.sid)
+    print 'Client disconnected', request.sid
 
 @socketio.on('calculate')
 def calculate(post_params):
-    print post_params
-    if post_params.get("is_for_test"):
-        del post_params["is_for_test"]
+    if post_params and post_params.get("is_for_test"):
         background_thread_place_order(**post_params)
     else:
         global thread
+        post_params['recipients'] = session['email']
+        post_params['username'] = session['username']
         thread = socketio.start_background_task(
             target=background_thread_place_order, **post_params
         )
