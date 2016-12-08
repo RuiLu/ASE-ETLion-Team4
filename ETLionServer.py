@@ -2,6 +2,8 @@ import json
 import random
 import urllib2
 
+from datetime import datetime
+from json import dumps
 from flask import request
 from flask import render_template
 from flask import redirect
@@ -15,8 +17,8 @@ from AppUtil import init_app
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
 from ETLionMail import get_email_html
-from forms import SignupForm, LoginForm
-from models import db, User
+from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
+from models import db, User, Order, Trade
 
 app = init_app()
 
@@ -34,6 +36,15 @@ def send_email_notification(recipients, username):
     msg = Message("Your Order Complete Successfully.", recipients=recipients)
     msg.html = get_email_html(username)
     mail.send(msg)
+
+def json_serial(obj):
+    """
+    JSON serializer for objects not serializable by default json code
+    """
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
         order_discount, order_size, inventory, trading_frequency,
@@ -71,6 +82,9 @@ def background_thread_place_order(
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
         else:
             price    = order['avg_price']
+
+            timestamp = dumps(datetime.now(), default=json_serial)
+
             notional = int(price * order_size)
             pnl += notional
             qty -= order_size
@@ -83,7 +97,8 @@ def background_thread_place_order(
                 'share_price': price,
                 'notional': notional,
                 'pnl': pnl,
-                'total_qty': total_qty
+                'total_qty': total_qty,
+                'timestamp': timestamp
             }
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
             socketio.emit('trade_log', emit_params)
@@ -126,10 +141,11 @@ def is_user_in_session():
 @app.route('/')
 @app.route('/index')
 def index():
+    form = LoginForm(request.form)
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
     else:
-        return render_template("index.html", async_mode=socketio.async_mode)
+        return render_template("index.html", async_mode=socketio.async_mode, form=form)
 
 @socketio.on('cancel_order')
 def cancel(post_params={}):
@@ -178,6 +194,43 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+# To-DO
+@app.route("/save_order", methods=[GET, POST])
+def save_order():
+
+    orderForm = saveOrderForm(request.form)
+    traderForm = saveTradeForm(request.form)
+
+    if request.method == POST:
+        newOrder = Order(
+            orderForm.type.data,
+            orderForm.size.data,
+            orderForm.inventory.data
+        )
+        db.session.add(newOrder)
+        db.session.commit()
+
+# @app.route("/login", methods=[GET, POST])
+# def login():
+#     if is_user_in_session():
+#         return redirect(url_for('trade', username=session['username']))
+
+#     form = LoginForm(request.form)
+
+#     if request.method == POST:
+#         email = form.email.data
+#         password = form.password.data
+#         user = User.query.filter_by(email=email).first()
+#         if user is not None and user.check_password(password):
+#             session['email'] = user.email
+#             session['username'] = user.firstname + ' ' + user.lastname
+#             return redirect(url_for('index', username=session['username']))
+#         else:
+#             return redirect(url_for('login'))
+
+#     elif request.method == 'GET':
+#         return render_template('login.html', form=form)
+
 @app.route("/login", methods=[GET, POST])
 def login():
     exec_resume_order()
@@ -194,12 +247,12 @@ def login():
         if user is not None and user.check_password(password):
             session['email'] = user.email
             session['username'] = user.firstname + ' ' + user.lastname
-            return redirect(url_for('index', username=session['username']))
+            return redirect(url_for('trade', username=session['username']))
         else:
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
 
-    elif request.method == 'GET':
-        return render_template('login.html', form=form)
+    # elif request.method == 'GET':
+    #     return render_template('index.html', form=form)
 
 @app.route("/logout")
 def logout():
