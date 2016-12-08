@@ -11,6 +11,7 @@
 pyflakes *.py
 
 # System Testing
+python ../Proj/server.py
 python ../Proj/ETLionTest.py
 
 # Original Github Pre-commit test
