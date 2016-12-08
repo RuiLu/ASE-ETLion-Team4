@@ -6,8 +6,14 @@
 # it wants to stop the commit.
 #
 # To enable this hook, rename this file to "pre-commit".
+
+# Static Analysis first
+pyflakes *.py
+
+# System Testing
 python ../Proj/ETLionTest.py
 
+# Original Github Pre-commit test
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
 	against=HEAD

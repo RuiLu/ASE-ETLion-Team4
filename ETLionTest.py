@@ -1,14 +1,7 @@
 import numbers
-import urllib2
 import unittest
 
-from flask import Flask
-from engineio import server
-
 from ETLionServer import app, socketio
-from ETLionServer import index, trade, signup, login, logout
-from ETLionServer import background_thread_place_order
-
 
 class ETLionServerTestCase(unittest.TestCase):
 
@@ -55,7 +48,6 @@ class ETLionServerTestCase(unittest.TestCase):
         self.assertTrue("Welcome to ETLion Trading System!" in response.data)
 
     def test_login(self):
-        self.logout()
         response = self.login(
             self.app.config["EMAIL"],
             self.app.config["PASSWORD"]
@@ -76,6 +68,19 @@ class ETLionServerTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue("Welcome to ETLion Trading System!" in response.data)
         self.assertFalse("Hi, Trader" in response.data)
+
+    def test_cancel_order(self):
+        self.login(
+            self.app.config["EMAIL"],
+            self.app.config["PASSWORD"]
+        )
+        self.socketio_tester = socketio.test_client(self.app)
+        self.socketio_tester.emit(
+            "cancel_order",
+            {"is_for_test": True}
+        )
+        receiveds = self.socketio_tester.get_received()
+        self.assertTrue(receiveds[0]["args"][0]["is_order_canceled"])
 
     def test_trade(self):
         self.login(
@@ -136,6 +141,7 @@ class ETLionServerTestCase(unittest.TestCase):
                 received["name"],
                 "trade_log"
             )
-        
+
+
 if __name__ == "__main__":
     unittest.main()
