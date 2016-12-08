@@ -17,7 +17,7 @@ from AppUtil import init_app
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
 from ETLionMail import get_email_html
-from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
+from forms import SignupForm, LoginForm
 from models import db, User, Order, Trade
 
 app = init_app()
@@ -29,6 +29,10 @@ db.init_app(app)
 socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
+
+# latest order/trade info
+order = dict()
+trades = []
 
 def send_email_notification(recipients, username):
     if not isinstance(recipients, list):
@@ -103,9 +107,11 @@ def background_thread_place_order(
                 'notional': notional,
                 'pnl': pnl,
                 'total_qty': total_qty,
-                'timestamp': timestamp
+                'timestamp': timestamp,
+                'status': 'success'
             }
-            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
+            print emit_params
+            trades.append(emit_params)
             socketio.emit('trade_log', emit_params)
 
     if not is_for_test and qty > 0:
@@ -130,7 +136,16 @@ def test_disconnect():
 
 @socketio.on('calculate')
 def calculate(post_params):
+    #clear last order detail
+    global trades
+    global order
+    trades = []
+    order = post_params
+
+    print post_params
+
     if post_params and post_params.get("is_for_test"):
+        del post_params["is_for_test"]
         background_thread_place_order(**post_params)
     else:
         global thread
@@ -139,6 +154,9 @@ def calculate(post_params):
         thread = socketio.start_background_task(
             target=background_thread_place_order, **post_params
         )
+
+    # save all order
+    save_order()
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -184,8 +202,8 @@ def signup():
             return render_template('signup.html', form=form)
         else:
             newuser = User(
-                form.firstname.data, 
-                form.lastname.data, 
+                form.firstname.data,
+                form.lastname.data,
                 form.email.data, 
                 form.password.data
             )
@@ -199,20 +217,28 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
-# To-DO
-@app.route("/save_order", methods=[GET, POST])
+
 def save_order():
+    user = User.query.filter_by(email=session['email']).first()
+    newOrder = Order(
+        'sell',
+        order['order_size'],
+        order['inventory'],
+        user.uid
+    )
+    db.session.add(newOrder)
+    db.session.commit()
 
-    orderForm = saveOrderForm(request.form)
-    traderForm = saveTradeForm(request.form)
-
-    if request.method == POST:
-        newOrder = Order(
-            orderForm.type.data,
-            orderForm.size.data,
-            orderForm.inventory.data
+    for trade in trades:
+        newTrade = Trade(
+            'sell',
+            trade['share_price'],
+            trade['order_size'],
+            trade['notional'],
+            trade['status'],
+            newOrder.oid
         )
-        db.session.add(newOrder)
+        db.session.add(newTrade)
         db.session.commit()
 
 # @app.route("/login", methods=[GET, POST])
