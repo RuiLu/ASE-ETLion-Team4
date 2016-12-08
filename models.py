@@ -23,3 +23,35 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.pwdhash, password)
+
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    oid = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer, db.ForeignKey("users.uid"))
+    type = db.Column(db.String(40))
+    size = db.Column(db.Integer)
+    inventory = db.Column(db.Integer)
+
+    def __init__(self, type, size, inventory):
+        self.type = type.title()
+        self.size = size
+        self.inventory = inventory
+
+
+class Trade(db.Model):
+    __tablename__ = 'trades'
+    tid = db.Column(db.Integer, primary_key=True)
+    oid = db.Column(db.Integer, db.ForeignKey("orders.oid"))
+    type = db.Column(db.String(40))
+    price = db.Column(db.Float)
+    shares = db.Column(db.Float)
+    notional = db.Column(db.Float)
+    status = db.Column(db.String(40))
+
+    def __init__(self, type, price, shares, notional, status):
+        self.type = type.title()
+        self.price = price
+        self.shares = shares
+        self.notional = notional
+        self.status = status.title()

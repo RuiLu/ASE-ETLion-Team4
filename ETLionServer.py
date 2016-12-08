@@ -10,9 +10,9 @@ from flask import url_for
 
 from flask_socketio import SocketIO
 
-from forms import SignupForm, LoginForm
+from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
 
-from models import db, User
+from models import db, User, Order, Trade
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
 from AppUtil import init_app
@@ -161,6 +161,23 @@ def signup():
 
     elif request.method == GET:
         return render_template('signup.html', form=form)
+
+
+@app.route("/save_order", methods=[GET, POST])
+def save_order():
+
+    orderForm = saveOrderForm(request.form)
+    traderForm = saveTradeForm(request.form)
+
+    if request.method == POST:
+        newOrder = Order(
+            orderForm.type.data,
+            orderForm.size.data,
+            orderForm.inventory.data
+        )
+        db.session.add(newOrder)
+        db.session.commit()
+
 
 @app.route("/login", methods=[GET, POST])
 def login():
