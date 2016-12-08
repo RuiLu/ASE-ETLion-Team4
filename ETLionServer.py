@@ -103,8 +103,8 @@ def background_thread_place_order(
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
             socketio.emit('trade_log', emit_params)
 
-    if not is_for_test:
-        with app.test_request_context(): # wth does this mean?
+    if not is_for_test and qty > 0:
+        with app.app_context():
             send_email_notification(recipients, username)
 
 def exec_cancel_order():
