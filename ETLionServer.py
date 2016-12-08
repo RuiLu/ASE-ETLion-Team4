@@ -32,6 +32,7 @@ is_order_canceled = False
 def background_thread_place_order(
         order_discount, order_size, inventory, trading_frequency
     ):
+    print order_discount
     order_discount = int(order_discount)
     order_size = int(order_size)
     inventory = int(inventory)
@@ -111,10 +112,11 @@ def is_user_in_session():
 @app.route('/')
 @app.route('/index')
 def index():
+    form = LoginForm(request.form)
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
     else:
-        return render_template("index.html", async_mode=socketio.async_mode)
+        return render_template("index.html", async_mode=socketio.async_mode, form=form)
 
 @socketio.on('cancel_order')
 def cancel():
@@ -159,6 +161,27 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+# @app.route("/login", methods=[GET, POST])
+# def login():
+#     if is_user_in_session():
+#         return redirect(url_for('trade', username=session['username']))
+
+#     form = LoginForm(request.form)
+
+#     if request.method == POST:
+#         email = form.email.data
+#         password = form.password.data
+#         user = User.query.filter_by(email=email).first()
+#         if user is not None and user.check_password(password):
+#             session['email'] = user.email
+#             session['username'] = user.firstname + ' ' + user.lastname
+#             return redirect(url_for('index', username=session['username']))
+#         else:
+#             return redirect(url_for('login'))
+
+#     elif request.method == 'GET':
+#         return render_template('login.html', form=form)
+
 @app.route("/login", methods=[GET, POST])
 def login():
     if is_user_in_session():
@@ -175,10 +198,10 @@ def login():
             session['username'] = user.firstname + ' ' + user.lastname
             return redirect(url_for('index', username=session['username']))
         else:
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
 
     elif request.method == 'GET':
-        return render_template('login.html', form=form)
+        return render_template('index.html', form=form)
 
 @app.route("/logout")
 def logout():
@@ -192,7 +215,7 @@ if __name__ == "__main__":
 
     @click.command()
     @click.argument('HOST', default='127.0.0.1')
-    @click.argument('PORT', default=4156, type=int)
+    @click.argument('PORT', default=6111, type=int)
     def socketio_app_run(host, port):
         try:
             HOST, PORT = host, port
