@@ -10,12 +10,11 @@ from flask import url_for
 
 from flask_socketio import SocketIO
 
-from forms import SignupForm, LoginForm
-
-from models import db, User
+from AppUtil import init_app
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
-from AppUtil import init_app
+from forms import SignupForm, LoginForm
+from models import db, User
 
 app = init_app()
 
