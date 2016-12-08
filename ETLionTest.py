@@ -15,7 +15,7 @@ class ETLionServerTestCase(unittest.TestCase):
                 ORDER_DISCOUNT = 10,
                 ORDER_SIZE = 200,
                 INVENTORY = 1000,
-                TRADING_FREQ = 5
+                TRADING_FREQ = 2
             )
         )
         self.tester = self.app.test_client()
