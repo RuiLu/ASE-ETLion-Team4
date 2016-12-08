@@ -42,16 +42,15 @@
                 </form>
             </div>
             <div class="sign col-md-8">
-                <div class="card trades" style="overflow: scroll;">
-                    <div class="row" id="generalInfo">
-                        <div class="col-md-4">
-                            Total Progress: <span id="percentage">0.0</span>%
-                        </div>
-                        <div class="col-md-4" align="right">
-                            PNL: <span id="pnl">0</scan>
-                        </div>
+                <div id="generalInfo">
+                    <div class="col-md-4">
+                        Total Progress: <span id="percentage">0.0</span>%
                     </div>
-                    
+                    <div class="col-md-4" align="right">
+                        PNL: <span id="pnl">0</scan>
+                    </div>
+                </div>
+                <div class="card trades" style="overflow: scroll;">    
                     <table class="table table-striped" id="trades-table" class="tablesorter" >
                         <thead>
                         <tr>
@@ -69,56 +68,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <div class="section-content">
-
-            <div class="cards">
-                <h2>Please Enter Following Parameters You Want To Start Trading</h2>
-                <form id="order-form" method="POST" action="#">
-                    <label>Order Discount</label>
-            		<input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
-                    <br/>
-                    <label>Order Size</label>
-                    <input type="text" name="order_size" id="order_size" placeholder="Order Size">
-                    <br/>
-                    <label>Inventory</label>
-                    <input type="text" name="inventory" id="inventory" placeholder="Inventory">
-                    <br/>
-                    <label>Trading Frequency</label>
-                    <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
-                    <div class="btn-div">
-                        <input class="btn" type="submit" value="Place Order" name="Place Order">
-                    </div>
-                    <div class="btn-div" id="cancel">
-                        <input class="btn" type="submit" value="Cancel Order" name="Cancel Order">
-                    </div>
-                </form>
-                <div class="card trades" style="overflow: scroll;">
-                    <table class="table table-striped" id="trades-table" class="tablesorter" >
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Price ($)</th>
-                            <th>Shares</th>
-                            <th>Notional</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody id="trade_log">
-                        </tbody>
-                    </table>
-
-                    <div id="summary">
-                        <div><p>Total Progress: <span id="percentage">0.0</span>%</p></div>
-                        <div><p>PNL: <span id="pnl">0</scan></p></div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div> -->
     </main>
 
 {% endblock %}
