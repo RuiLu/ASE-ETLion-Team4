@@ -31,7 +31,6 @@ is_order_canceled = False
 def background_thread_place_order(
         order_discount, order_size, inventory, trading_frequency,
     ):
-    print order_discount
     order_discount = int(order_discount)
     order_size = int(order_size)
     inventory = int(inventory)
@@ -99,6 +98,7 @@ def test_disconnect():
 
 @socketio.on('calculate')
 def calculate(post_params):
+    print post_params
     if post_params.get("is_for_test"):
         del post_params["is_for_test"]
         background_thread_place_order(**post_params)
@@ -201,7 +201,7 @@ def login():
         if user is not None and user.check_password(password):
             session['email'] = user.email
             session['username'] = user.firstname + ' ' + user.lastname
-            return redirect(url_for('index', username=session['username']))
+            return redirect(url_for('trade', username=session['username']))
         else:
             return redirect(url_for('index'))
 
