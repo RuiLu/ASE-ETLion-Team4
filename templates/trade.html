@@ -7,7 +7,8 @@
             <div class="sign col-md-6">
                 <span style="font-size:25px;color:#FFFFFF">Hi, Trader {{ username }}</span>
             </div>
-            <div class="sign col-md-6" align="right">            
+            <div class="sign col-md-6" align="right">
+                <a href="{{ url_for('logout') }}" class="btn" id="btn-history">Trade History</a>            
                 <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
             </div>
         </div>
@@ -15,24 +16,15 @@
         <div class="row">
             <div class="sign col-md-4">
                 <form id="order-form" method="POST" action="#">
-                    <h4>Please Enter Following Parameters</h4>
-                    <br>
+                    <!-- <h4>Please Enter Following Parameters</h4> -->
                     <label id="order_discount_label">Order Discount</label>
-                    <br>
                     <input type="text" name="order_discount" id="order_discount" placeholder="Order Discount">
-                    <br>
                     <label id="order_size_label">Order Size</label>
-                    <br>
                     <input type="text" name="order_size" id="order_size" placeholder="Order Size">
-                    <br>
                     <label id="inventory_label">Inventory</label>
-                    <br>
                     <input type="text" name="inventory" id="inventory" placeholder="Inventory">
-                    <br>
                     <label id="trading_frequency_label">Trading Frequency</label>
-                    <br>
                     <input type="text" name="trading_frequency" id="trading_frequency" placeholder="Trading Frequency">
-                    <br>
                     <div class="btn-div">
                         <input class="btn" type="submit" value="Place Order" name="Place Order" id="placeOrder">
                     </div>
@@ -68,6 +60,12 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="sign col-md-6">
+            <div id="chart"></div>
+            </div>
+        </div>
+
     </main>
 
 {% endblock %}

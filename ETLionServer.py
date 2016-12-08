@@ -2,6 +2,8 @@ import json
 import random
 import urllib2
 
+from datetime import datetime
+from json import dumps
 from flask import request
 from flask import render_template
 from flask import redirect
@@ -24,6 +26,15 @@ db.init_app(app)
 socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
+
+def json_serial(obj):
+
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
         order_discount, order_size, inventory, trading_frequency,
@@ -60,6 +71,9 @@ def background_thread_place_order(
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
         else:
             price    = order['avg_price']
+
+            timestamp = dumps(datetime.now(), default=json_serial)
+
             notional = int(price * order_size)
             pnl += notional
             qty -= order_size
@@ -72,7 +86,8 @@ def background_thread_place_order(
                 'share_price': price,
                 'notional': notional,
                 'pnl': pnl,
-                'total_qty': total_qty
+                'total_qty': total_qty,
+                'timestamp': timestamp
             }
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
             socketio.emit('trade_log', emit_params)
