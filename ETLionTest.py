@@ -61,7 +61,7 @@ class ETLionServerTestCase(unittest.TestCase):
             self.app.config["PASSWORD"] + 'x'
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue("Log in" in response.data)
+        self.assertFalse("Log in" in response.data)
     
     def test_logout(self):
         response = self.logout()
