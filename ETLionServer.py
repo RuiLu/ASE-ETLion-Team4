@@ -1,9 +1,7 @@
 import json
 import random
-import socket
 import urllib2
 
-from flask import Flask
 from flask import request
 from flask import render_template
 from flask import redirect
@@ -11,13 +9,12 @@ from flask import session
 from flask import url_for
 
 from flask_socketio import SocketIO
-from flask_socketio import disconnect, emit
 
 from forms import SignupForm, LoginForm
 
 from models import db, User
 from Enum import POST, GET
-from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
+from Enum import QUERY_URL, ORDER_URL
 from AppUtil import init_app
 
 app = init_app()
@@ -121,8 +118,11 @@ def index():
         return render_template("index.html", async_mode=socketio.async_mode, form=form)
 
 @socketio.on('cancel_order')
-def cancel():
+def cancel(post_params={}):
     exec_cancel_order()
+    if post_params and post_params.get('is_for_test'):
+        emit_params = {"is_order_canceled": is_order_canceled}
+        socketio.emit('cancel_order', emit_params)
 
 @app.route('/trade')
 def trade():
