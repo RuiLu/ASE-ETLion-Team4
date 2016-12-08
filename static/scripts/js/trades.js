@@ -44,11 +44,33 @@ $(document).ready(function () {
     });
 
     $("form#order-form").submit(function (event) {
+        var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
+        var startTime = new Date().toLocaleTimeString();
+
+        var endTokens = endTime.split(":");
+        var startTokens = startTime.split(":");
+        var endHour = endTokens[0].trim();
+        var startHour = startTokens[0].trim();
+        var endMin = endTokens[1].trim().split(" ")[0];
+        var startMin = startTokens[1];
+        var endAP = endTokens[1].trim().split(" ")[1];
+        var startAP = startTokens[2].trim().split(" ")[1];
+
+        if (endAP == "PM") {
+            endHour = (parseInt(endHour) + 12).toString();
+        }
+        if (startAP == "PM") {
+            startHour = (parseInt(startHour) + 12).toString();
+        }
+
+        var duration = (parseInt(endHour) - parseInt(startHour)) * 60 * 60 + 
+                       (parseInt(endMin) - parseInt(startMin)) * 60;
+
         socket.emit("calculate", {
             order_discount: $("#order_discount").val(),
             order_size: $("#order_size").val(),
             inventory: $("#inventory").val(),
-            trading_frequency: $("#trading_frequency").val()
+            trading_frequency: $("#trading_frequency").val(),
         });
         soldShares = 0;
         $("span#percentage").html(0);
@@ -59,7 +81,14 @@ $(document).ready(function () {
         socket.emit("logout");
         return false;
     });
+
+    $('div#cancel').click(function(event) {
+        socket.emit('cancel_order');
+        return false;
+    });
 });
+
+var timepickers = $('#timepicker').wickedpicker(); 
 
 // "2016-11-30T16:48:20.412771"
 // "2016-11-30T16:48:20"
