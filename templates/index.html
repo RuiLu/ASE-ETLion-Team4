@@ -1,19 +1,46 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
-<video autoplay loop muted>
-    <source src="static/videos/background.mp4" type="video/mp4">
-</video>
-<div class="sign col-md-4 col-md-offset-8">
-    {% if not username %}
-        <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
-        <a href="{{ url_for('login') }}" class="btn">Log In</a>
-    {% else %}
-        <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
-    {% endif %}
+<div class="row">
+  <div class="sign"></div>
 </div>
-<div id="hp-hello">
+<div class="row">
+  <div class="sign col-md-2"></div>
+  <div class="sign col-md-4">
+    <br>
+    <h1 class="ui large header" style="color:white">ETLion</hi>
+    <br>
+    <main class="container login-section signup-section">
+      <div class="section-content">
+        <form method="POST" action="/login">
+          {{ form.hidden_tag() }}
+          <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email }}
+            {{ form.password.label }}
+            {{ form.password }}
+          </div>
+          {{ form.submit(class="btn-primary") }}
+        </form>
+      </div>
+    </main>
+    <a href="{{ url_for('signup') }}" class="btn" id="signup">Sign up</a>
+  </div>
+  <div class="sign col-md-5">
+    <br>
+    <h1 class="ui large header" style="color:white">
+       ETLion Trading System!
+    </h1>
+    <br>
+    <img src="static/images/lion.gif" alt="HTML5 Icon" width="308" height="450">
+    <h3 class="ui large header" style="color:white">
+      Place The Order Automatically For You!
+    </h3>
+</div>
+  </div>
+</div>
+
+<!-- <div id="hp-hello">
   <h1 class="ui large header">
     {% if username %}
       Hi, {{username}}
@@ -24,6 +51,5 @@
   <h2 class="ui large header">
     Place The Order Automatically For You!
   </h2>
-</div>
-
+</div> -->
 {% endblock %}

@@ -4,10 +4,14 @@ html, body {
     font-family: 'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
 }
 
+h4 {
+    margin-left: 20px;
+    color: #FFFFFF;
+}
+
 .container {
-    height: 700px;
+    height: 300px;
     width: 100%;
-    background-size: cover;
 }
 
 .intro {
@@ -24,11 +28,11 @@ html, body {
 
 .trades {
     flex-grow: 0.5;
-    background-color: #55DED3;
-    width: 370px;
-    height: 500px;
-    border-radius: 10px;
-    padding: 20px 20px;
+    background-color: #CCCCCC;
+    width: 100%;
+    height: 400px;
+    border-radius: 5px;
+    padding: 10px 10px;
     box-shadow: 0 0 10px gold;
 }
 
@@ -51,13 +55,13 @@ html, body {
 }
 
 .sign {
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 #order-form {
-    background-color: #0B6EFD;
-    width: 370px;
-    height: 300px;
+    background-color: #6699CC;
+    width: 100%;
+    height: 450px;
     margin: 0 auto;
     border-radius: 10px;
     padding: 20px 0;
@@ -71,10 +75,11 @@ html, body {
 
 .trades #summary {
     position: absolute;
-    top: 465px;
+    /*top: 465px;*/
     font-size: 1.2em;
+    border-width: 2px;
+    width: 100%;
     display: flex;
-    justify-content: space-between;
 }
 
 #summary div:nth-child(1) {
@@ -87,7 +92,6 @@ html, body {
 
 }
 
-
 form {
     padding: 15px 0;
 }
@@ -95,22 +99,31 @@ form {
 form label {
     display: inline-block;
     width: 140px;
-    text-align: right;
-    margin-right: 20px;
+    font-size: 20px;
+    margin-left: -15px;
+    text-align: left;
+    color: #FFFFFF;
+    height: 20px;
 }
 
 form input {
+    color: #123456;
+    font-size: 18px;
+    margin-top: 5px;
     margin-bottom: 15px;
-    width: 180px;
+    margin-left: -15px;
+    width: 250px;
+    height: 40px;
 }
 
 .btn-div {
-    margin: 20px;
+    margin: 15px;
     text-align: center;
+    float: left;
 }
 
 .btn {
-    background-color: #0B6EFD;
+    background-color: #6699CC;
     color: #fff;
     font-size: 16px;
     font-weight: 300;
@@ -220,8 +233,6 @@ input.btn:hover {
 }
 
 .signup-section {
-    background: wheat;
-    display: flex;
     justify-content: center;
 }
 
@@ -231,25 +242,73 @@ input.btn:hover {
 }
 
 .signup-section form {
-    background: deepskyblue;
     clear: both;
     width: 360px;
     height: 320px;
     border-radius: 5%;
 }
 
-.signup-section #submit {
-    float: right;
-    padding: 6px 16px;
-    border-radius: 25px;
+#submit {
+    float: left;
+    width: 240px;
+    height: 40px;
+    border-radius: 10px;
     border: 1px solid white;
-    font-size: 1.2em;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+#signup {
+    background-color: darkblue;
+    float: left;
+    width: 240px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid white;
+    font-size: 20px;
     margin-right: 10px;
 }
 
 .login-section form {
-    background: deepskyblue;
     clear: both;
     width: 360px;
     height: 230px;
+}
+
+#order_discount, #order_size, #inventory, #trading_frequency {
+    margin-left: 20px;
+    font-size: 15px;
+}
+
+#order_discount_label, #order_size_label, #inventory_label, #trading_frequency_label {
+    margin-left: 20px;
+    font-size: 15px;
+}
+
+#generalInfo {
+    color: #006699;
+    margin-bottom: 5px;
+    font-size: 20px;
+    flex-grow: 0.5;
+    background-color: #CCCCCC;
+    width: 100%;
+    height: 45px;
+    border-radius: 5px;
+    padding: 10px 10px;
+    box-shadow: 0 0 10px gold;
+}
+
+#placeOrder {
+    margin-left: 5px;
+}
+
+#error {
+    font-size: 10px;
+    color: orange;
+}
+
+#btn-history {
+    margin-right: 10px;
+    background-color: #FFCCCC;
+    color: #333333;
 }

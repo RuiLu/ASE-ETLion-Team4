@@ -1,54 +1,63 @@
-import eventlet
-eventlet.monkey_patch()
-
 import json
-import time
 import random
-import socket
 import urllib2
 
-from flask import Flask
+from datetime import datetime
+from json import dumps
 from flask import request
 from flask import render_template
 from flask import redirect
 from flask import session
 from flask import url_for
-
+from flask_mail import Mail
+from flask_mail import Message
 from flask_socketio import SocketIO
-from flask_socketio import disconnect, emit
 
-from forms import SignupForm, LoginForm
-
-from models import db, User
-from Enum import POST, GET
-from Enum import ORDER_DISCOUNT, ORDER_SIZE, INVENTORY
-from Enum import QUERY_URL, ORDER_URL, SQLALCHEMY_DATABASE_URI
 from AppUtil import init_app
+from Enum import POST, GET
+from Enum import QUERY_URL, ORDER_URL
+from ETLionMail import get_email_html
+from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
+from models import db, User, Order, Trade
 
+app = init_app()
 
-app = Flask(__name__)
-app.config["DEBUG"] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.secret_key = "development-key"
+mail = Mail(app)
 
 db.init_app(app)
 
-async_mode = None
-socketio = SocketIO(app, async_mode=async_mode)
+socketio = SocketIO(app, async_mode=None)
 thread = None
 is_order_canceled = False
 
-def background_thread_place_order(order_discount, order_size, inventory):
+def send_email_notification(recipients, username):
+    if not isinstance(recipients, list):
+        recipients = [recipients]
+    msg = Message("Your Order Complete Successfully.", recipients=recipients)
+    msg.html = get_email_html(username)
+    mail.send(msg)
+
+def json_serial(obj):
+    """
+    JSON serializer for objects not serializable by default json code
+    """
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
+
+def background_thread_place_order(
+        order_discount, order_size, inventory, trading_frequency,
+        recipients=[], username="", is_for_test=False
+    ):
     order_discount = int(order_discount)
     order_size = int(order_size)
     inventory = int(inventory)
-    trading_freq = 3
+    trading_freq = int(trading_frequency)
 
     # Start with all shares and no profit
     total_qty = qty = inventory
     pnl = 0
-
     # Repeat the strategy until we run out of shares.
     while qty > 0:
         global is_order_canceled
@@ -57,12 +66,10 @@ def background_thread_place_order(order_discount, order_size, inventory):
             break
         # Query the price once every N seconds.
         socketio.sleep(trading_freq)
-
         quote = json.loads(
             urllib2.urlopen(QUERY_URL.format(random.random())).read()
         )
         price = float(quote['top_bid']['price'])
-         
         # Attempt to execute a sell order.
         discount_price = price - order_discount
         order_args = (order_size, discount_price)
@@ -75,46 +82,58 @@ def background_thread_place_order(order_discount, order_size, inventory):
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
         else:
             price    = order['avg_price']
+
+            timestamp = dumps(datetime.now(), default=json_serial)
+
             notional = int(price * order_size)
             pnl += notional
             qty -= order_size
             print "Sold {:,} for ${:,}/share, ${:,} notional".format(
                 order_size, price, notional
             )
+            emit_params = {
+                'order_size': order_size,
+                'discount_price': discount_price,
+                'share_price': price,
+                'notional': notional,
+                'pnl': pnl,
+                'total_qty': total_qty,
+                'timestamp': timestamp
+            }
             print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-            socketio.emit('trade_log',
-                    {
-                        'order_size': order_size,
-                        'discount_price': discount_price,
-                        'share_price': price,
-                        'notional': notional,
-                        'pnl': pnl,
-                        'total_qty': total_qty
-                    }
-            )
+            socketio.emit('trade_log', emit_params)
+
+    if not is_for_test:
+        with app.test_request_context(): # wth does this mean?
+            send_email_notification(recipients, username)
+
+def exec_cancel_order():
+    global is_order_canceled
+    is_order_canceled = True
+
+def exec_resume_order():
+    global is_order_canceled
+    is_order_canceled = False
 
 @socketio.on('connect')
 def test_connect():
     print "Connected with Socket-IO !!!!!!!!!!!!!!!!!!!!!!!"
 
-@socketio.on('cancel_order')
-def cancel():
-    # print "Disconnected with Socket-IO client side."
-    # disconnect()
-    global is_order_canceled
-    is_order_canceled = True
-
 @socketio.on('disconnect')
 def test_disconnect():
-    print('Client disconnected', request.sid)
+    print 'Client disconnected', request.sid
 
 @socketio.on('calculate')
 def calculate(post_params):
-    print post_params
-    global thread
-    thread = socketio.start_background_task(
-        target=background_thread_place_order, **post_params
-    )
+    if post_params and post_params.get("is_for_test"):
+        background_thread_place_order(**post_params)
+    else:
+        global thread
+        post_params['recipients'] = session['email']
+        post_params['username'] = session['username']
+        thread = socketio.start_background_task(
+            target=background_thread_place_order, **post_params
+        )
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -122,25 +141,34 @@ def is_user_in_session():
 @app.route('/')
 @app.route('/index')
 def index():
+    form = LoginForm(request.form)
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
     else:
-        return render_template("index.html", async_mode=socketio.async_mode)
+        return render_template("index.html", async_mode=socketio.async_mode, form=form)
+
+@socketio.on('cancel_order')
+def cancel(post_params={}):
+    exec_cancel_order()
+    if post_params and post_params.get('is_for_test'):
+        emit_params = {"is_order_canceled": is_order_canceled}
+        socketio.emit('cancel_order', emit_params)
 
 @app.route('/trade')
 def trade():
-    if is_user_in_session():
+    if not is_user_in_session():
+        return redirect(url_for('index', username=session['username']))
+    else:
         return render_template(
             "trade.html",
             async_mode=socketio.async_mode,
             username=session['username']
         )
-    else:
-        return redirect(url_for('index', username=session['username']))
-
 
 @app.route("/signup", methods=[GET, POST])
 def signup():
+    exec_resume_order()
+
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
@@ -166,8 +194,47 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+# To-DO
+@app.route("/save_order", methods=[GET, POST])
+def save_order():
+
+    orderForm = saveOrderForm(request.form)
+    traderForm = saveTradeForm(request.form)
+
+    if request.method == POST:
+        newOrder = Order(
+            orderForm.type.data,
+            orderForm.size.data,
+            orderForm.inventory.data
+        )
+        db.session.add(newOrder)
+        db.session.commit()
+
+# @app.route("/login", methods=[GET, POST])
+# def login():
+#     if is_user_in_session():
+#         return redirect(url_for('trade', username=session['username']))
+
+#     form = LoginForm(request.form)
+
+#     if request.method == POST:
+#         email = form.email.data
+#         password = form.password.data
+#         user = User.query.filter_by(email=email).first()
+#         if user is not None and user.check_password(password):
+#             session['email'] = user.email
+#             session['username'] = user.firstname + ' ' + user.lastname
+#             return redirect(url_for('index', username=session['username']))
+#         else:
+#             return redirect(url_for('login'))
+
+#     elif request.method == 'GET':
+#         return render_template('login.html', form=form)
+
 @app.route("/login", methods=[GET, POST])
 def login():
+    exec_resume_order()
+
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
 
@@ -180,17 +247,18 @@ def login():
         if user is not None and user.check_password(password):
             session['email'] = user.email
             session['username'] = user.firstname + ' ' + user.lastname
-            return redirect(url_for('index', username=session['username']))
+            return redirect(url_for('trade', username=session['username']))
         else:
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
 
-    elif request.method == 'GET':
-        return render_template('login.html', form=form)
+    # elif request.method == 'GET':
+    #     return render_template('index.html', form=form)
 
 @app.route("/logout")
 def logout():
     session.pop('email', None)
     session.pop('username', None)
+    exec_cancel_order()
     return redirect('/')
 
 if __name__ == "__main__":

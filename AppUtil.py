@@ -6,5 +6,14 @@ def init_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://xtifhtrqnydawd:n3xiwg41_vMzqBKG99pKt3gX4D@ec2-50-19-219-148.compute-1.amazonaws.com:5432/d9265ge1sbuard'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
     app.secret_key = "development-key"
-    return app
+    app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+    app.config['MAIL_USERNAME'] = "etliontrade@gmail.com"
 
+    f = open("password.txt", "r")
+    app.config['MAIL_PASSWORD'] = f.read()
+
+    app.config['MAIL_DEFAULT_SENDER'] = "etliontrade@gmail.com"
+    return app
