@@ -205,8 +205,8 @@ def login():
         else:
             return redirect(url_for('index'))
 
-    elif request.method == 'GET':
-        return render_template('index.html', form=form)
+    # elif request.method == 'GET':
+    #     return render_template('index.html', form=form)
 
 @app.route("/logout")
 def logout():
@@ -220,7 +220,7 @@ if __name__ == "__main__":
 
     @click.command()
     @click.argument('HOST', default='127.0.0.1')
-    @click.argument('PORT', default=6111, type=int)
+    @click.argument('PORT', default=4156, type=int)
     def socketio_app_run(host, port):
         try:
             HOST, PORT = host, port
