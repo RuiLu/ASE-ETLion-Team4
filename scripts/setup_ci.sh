@@ -5,6 +5,6 @@ then
 	echo "Remove Original pre-commit"
 	rm $file
 fi
-ln -s pre-commit $file
+cp pre-commit $file
 chmod +x $file
 echo "Set Up pre-commit successfully."
