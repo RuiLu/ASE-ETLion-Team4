@@ -47,13 +47,18 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, trading_frequency,
+        order_discount, order_size, inventory, total_duration,
         recipients=[], username="", is_for_test=False
     ):
     order_discount = int(order_discount)
     order_size = int(order_size)
     inventory = int(inventory)
-    trading_freq = int(trading_frequency)
+    duration = int(total_duration)
+
+    times = duration / (inventory / order_size)
+    trading_freq = int(times)
+
+    print "!!!!!!frequency: ", trading_freq
 
     # Start with all shares and no profit
     total_qty = qty = inventory
