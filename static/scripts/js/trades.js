@@ -51,8 +51,6 @@ $(document).ready(function () {
     });
 
     $("#placeOrder").on('click',function() {
-        $(this).prop("disabled",true);
-        $("#cancelOrder").prop("disabled",false);
 
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
@@ -73,6 +71,15 @@ $(document).ready(function () {
             startHour = (parseInt(startHour) + 12).toString();
         }
 
+        if ((parseInt(endHour) < parseInt(startHour)) || 
+            (parseInt(endHour) == parseInt(startHour) && parseInt(endMin) <= parseInt(startMin))) {
+            alert("Please choose a time after NOW.");
+            return false;
+        } 
+
+        $(this).prop("disabled",true);
+        $("#cancelOrder").prop("disabled",false);
+
         var duration = (parseInt(endHour) - parseInt(startHour)) * 60 * 60 + 
                        (parseInt(endMin) - parseInt(startMin)) * 60;
 
@@ -90,6 +97,7 @@ $(document).ready(function () {
         $("#trades-table").find("tbody").children().remove();
         $("span#percentage").html(0);
         $("span#pnl").html(0);
+
         return false;
     });
 
