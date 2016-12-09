@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 def init_app():
@@ -12,7 +14,8 @@ def init_app():
     app.config['MAIL_USE_SSL'] = True
     app.config['MAIL_USERNAME'] = "etliontrade@gmail.com"
 
-    f = open("password.txt", "r")
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    f = open(dirname + "/password.txt", "r")
     app.config['MAIL_PASSWORD'] = f.read()
 
     app.config['MAIL_DEFAULT_SENDER'] = "etliontrade@gmail.com"
