@@ -15,7 +15,7 @@ class ETLionServerTestCase(unittest.TestCase):
                 ORDER_DISCOUNT = 10,
                 ORDER_SIZE = 200,
                 INVENTORY = 1000,
-                TRADING_FREQ = 2
+                DURATION = 10
             )
         )
         self.tester = self.app.test_client()
@@ -93,7 +93,7 @@ class ETLionServerTestCase(unittest.TestCase):
             "order_discount": self.app.config["ORDER_DISCOUNT"],
             "order_size": self.app.config["ORDER_SIZE"],
             "inventory": self.app.config["INVENTORY"],
-            "trading_frequency": self.app.config["TRADING_FREQ"],
+            "total_duration": self.app.config["DURATION"],
             "is_for_test": True
         }
         self.socketio_tester.emit("calculate", post_params)

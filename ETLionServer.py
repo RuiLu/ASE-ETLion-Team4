@@ -26,7 +26,7 @@ mail = Mail(app)
 
 db.init_app(app)
 
-socketio = SocketIO(app, async_mode=None)
+socketio = SocketIO(app, async_mode="eventlet")
 thread = None
 is_order_canceled = False
 
@@ -111,6 +111,7 @@ def background_thread_place_order(
     if not is_for_test and qty > 0:
         with app.app_context():
             send_email_notification(recipients, username)
+    socketio.emit('trade_log', emit_params)
 
 def exec_cancel_order():
     global is_order_canceled
