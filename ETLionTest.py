@@ -98,6 +98,8 @@ class ETLionServerTestCase(unittest.TestCase):
         }
         self.socketio_tester.emit("calculate", post_params)
         receiveds = self.socketio_tester.get_received()
+        last_received = receiveds[-1]
+        receiveds = receiveds[:-1]
         self.assertEqual(
             len(receiveds),
             self.app.config["INVENTORY"] / self.app.config["ORDER_SIZE"]
@@ -141,6 +143,9 @@ class ETLionServerTestCase(unittest.TestCase):
             self.assertEqual(
                 received["name"],
                 "trade_log"
+            )
+            self.assertTrue(
+                last_received["args"][0]["is_order_finised"],
             )
 
 

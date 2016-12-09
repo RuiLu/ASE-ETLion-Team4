@@ -47,10 +47,12 @@ $(document).ready(function () {
        console.log(param);
     });
 
+    $("#placeOrder").on('click',function() {
+        $(this).prop("disabled",true);
+        $("#cancelOrder").prop("disabled",false);
+    });
+
     $("form#order-form").submit(function (event) {
-
-        // document.getElementById("placeOrder").disabled = true;
-
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
 
@@ -80,7 +82,7 @@ $(document).ready(function () {
             total_duration: duration
         });
         soldShares = 0;
-        $("span#percentage").html(0);
+        $("span#percentage").html(0.0);
         return false;
     });
 
@@ -90,7 +92,8 @@ $(document).ready(function () {
     });
 
     $('div#cancel').click(function(event) {
-        // document.getElementById("placeOrder").disabled = false;
+        $("#placeOrder").prop("disabled",false);
+        $("#cancelOrder").prop("disabled",true);
         socket.emit('cancel_order');
         return false;
     });

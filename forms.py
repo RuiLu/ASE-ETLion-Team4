@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, IntegerField, FloatField
+from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, InputRequired, EqualTo, Email, Length
 
 
@@ -30,62 +30,3 @@ class LoginForm(FlaskForm):
         ]
     )
     submit = SubmitField("Sign in")
-
-# TO-DO: input constraint
-class saveOrderForm(FlaskForm):
-    type = StringField(
-        'Type',
-        validators=[
-            DataRequired("Please enter order type.")
-        ]
-    )
-
-    size = IntegerField(
-        'Size',
-        validators=[
-            DataRequired("Please enter order size.")
-        ]
-    )
-
-    inventory = IntegerField(
-        'Inventory',
-        validators=[
-            DataRequired("Please enter order inventory.")
-        ]
-    )
-
-class saveTradeForm(FlaskForm):
-    type = StringField(
-        'Type',
-        validators=[
-            DataRequired("Please enter trade type.")
-        ]
-    )
-
-    price = FloatField(
-        'Price',
-        validators=[
-            DataRequired("Please enter trade price.")
-        ]
-    )
-
-    shares = FloatField(
-        'Shares',
-        validators=[
-            DataRequired("Please enter trade shares.")
-        ]
-    )
-
-    notional = FloatField(
-        'Notional',
-        validators=[
-            DataRequired("Please enter trade notional.")
-        ]
-    )
-
-    status = StringField(
-        'Status',
-        validators=[
-            DataRequired("Please enter trade status.")
-        ]
-    )
