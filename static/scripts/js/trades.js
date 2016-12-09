@@ -43,7 +43,7 @@ $(document).ready(function () {
         }, 500);
     });
 
-    /* used to receive confirmation that transaction is over */
+    // used to receive confirmation that transaction is over
     socket.on("trade_over", function (param) {
         console.log(param);
         $("#placeOrder").prop("disabled",false);
@@ -82,7 +82,12 @@ $(document).ready(function () {
             inventory: $("#inventory").val(),
             total_duration: duration
         });
+
         soldShares = 0;
+        pnl = 0;
+        count = 1;
+
+        $("#trades-table").find("tbody").children().remove();
         $("span#percentage").html(0);
         $("span#pnl").html(0);
         return false;
