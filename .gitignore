@@ -1,4 +1,4 @@
-*.pyc
+*.py[c]
 *.swp
 *.pdf
 .DS_Store
