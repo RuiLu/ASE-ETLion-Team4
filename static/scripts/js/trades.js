@@ -43,10 +43,6 @@ $(document).ready(function () {
         }, 500);
     });
 
-    socket.on("finish_order", function (param) {
-       console.log(param);
-    });
-
     // used to receive confirmation that transaction is over
     socket.on("trade_over", function (param) {
         console.log(param);

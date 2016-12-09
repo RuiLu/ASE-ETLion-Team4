@@ -144,8 +144,9 @@ class ETLionServerTestCase(unittest.TestCase):
                 received["name"],
                 "trade_log"
             )
-            self.assertTrue(
-                last_received["args"][0]["is_order_finised"],
+            self.assertEqual(
+                "trade is over",
+                last_received["args"][0],
             )
 
 

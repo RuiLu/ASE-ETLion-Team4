@@ -120,11 +120,6 @@ def background_thread_place_order(
         with app.app_context():
             send_email_notification(recipients, username)
 
-    socketio.emit(
-        'finish_order',
-        {'is_order_finised': True}
-    )
-
 def exec_cancel_order():
     global is_order_canceled
     is_order_canceled = True
