@@ -7,14 +7,12 @@
 #
 # To enable this hook, rename this file to "pre-commit".
 
-pwd
-
 # Static Analysis first
 pyflakes *.py
 
 # System Testing
-python ../..//server.py
-python ../..//ETLionTest.py
+python server.py
+python ETLionTest.py
 
 # Original Github Pre-commit test
 if git rev-parse --verify HEAD >/dev/null 2>&1
