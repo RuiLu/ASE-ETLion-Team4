@@ -20,7 +20,7 @@ $(document).ready(function () {
     // dataArray = [90, 80, 70, 60, 50, 40, 30, 20, 10];
     // dataYears = ['2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008'];
 
-
+    // used to receive transaction data
     socket.on("trade_log", function (param) {
         console.log(param);
         tradeInfo = "<tr><td>" + count + "</td><td>Sell</td><td>" + param.share_price + "</td><td>" + param.order_size + "</td><td>" + param.notional + "</td><td>Success</td></tr>";
@@ -47,12 +47,15 @@ $(document).ready(function () {
        console.log(param);
     });
 
-    $("#placeOrder").on('click',function() {
-        $(this).prop("disabled",true);
-        $("#cancelOrder").prop("disabled",false);
+    // used to receive confirmation that transaction is over
+    socket.on("trade_over", function (param) {
+        console.log(param);
+        $("#placeOrder").prop("disabled",false);
+        $("#cancelOrder").prop("disabled",true);
     });
 
-    $("form#order-form").submit(function (event) {
+    $("#placeOrder").on('click',function() {
+
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
 
@@ -72,6 +75,15 @@ $(document).ready(function () {
             startHour = (parseInt(startHour) + 12).toString();
         }
 
+        if ((parseInt(endHour) < parseInt(startHour)) ||
+            (parseInt(endHour) == parseInt(startHour) && parseInt(endMin) <= parseInt(startMin))) {
+            alert("Please choose a time after NOW.");
+            return false;
+        }
+
+        $(this).prop("disabled",true);
+        $("#cancelOrder").prop("disabled",false);
+
         var duration = (parseInt(endHour) - parseInt(startHour)) * 60 * 60 + 
                        (parseInt(endMin) - parseInt(startMin)) * 60;
 
@@ -81,8 +93,15 @@ $(document).ready(function () {
             inventory: $("#inventory").val(),
             total_duration: duration
         });
+
         soldShares = 0;
-        $("span#percentage").html(0.0);
+        pnl = 0;
+        count = 1;
+
+        $("#trades-table").find("tbody").children().remove();
+        $("span#percentage").html(0);
+        $("span#pnl").html(0);
+
         return false;
     });
 

@@ -114,6 +114,8 @@ def background_thread_place_order(
             trades.append(emit_params)
             socketio.emit('trade_log', emit_params)
 
+    socketio.emit('trade_over', "trade is over")
+
     if not is_for_test and qty > 0:
         with app.app_context():
             send_email_notification(recipients, username)
@@ -224,14 +226,17 @@ def signup():
 
 
 def save_order():
+    global order
+    global trades
+
     user = User.query.filter_by(email=session['email']).first()
-    newOrder = Order(
+    new＿order = Order(
         'sell',
         order['order_size'],
         order['inventory'],
         user.uid
     )
-    db.session.add(newOrder)
+    db.session.add(new＿order)
     db.session.commit()
 
     for trade in trades:
@@ -241,7 +246,7 @@ def save_order():
             trade['order_size'],
             trade['notional'],
             trade['status'],
-            newOrder.oid
+            new＿order.oid
         )
         db.session.add(newTrade)
         db.session.commit()
