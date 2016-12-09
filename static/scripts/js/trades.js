@@ -20,7 +20,7 @@ $(document).ready(function () {
     // dataArray = [90, 80, 70, 60, 50, 40, 30, 20, 10];
     // dataYears = ['2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008'];
 
-
+    // used to receive transaction data
     socket.on("trade_log", function (param) {
         console.log(param);
         tradeInfo = "<tr><td>" + count + "</td><td>Sell</td><td>" + param.share_price + "</td><td>" + param.order_size + "</td><td>" + param.notional + "</td><td>Success</td></tr>";
@@ -43,12 +43,17 @@ $(document).ready(function () {
         }, 500);
     });
 
+    /* used to receive confirmation that transaction is over */
+    socket.on("trade_over", function (param) {
+        console.log(param);
+        $("#placeOrder").prop("disabled",false);
+        $("#cancelOrder").prop("disabled",true);
+    });
+
     $("#placeOrder").on('click',function() {
         $(this).prop("disabled",true);
         $("#cancelOrder").prop("disabled",false);
-    });
 
-    $("form#order-form").submit(function (event) {
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
 
@@ -78,7 +83,8 @@ $(document).ready(function () {
             total_duration: duration
         });
         soldShares = 0;
-        $("span#percentage").html(0.0);
+        $("span#percentage").html(0);
+        $("span#pnl").html(0);
         return false;
     });
 

@@ -114,6 +114,8 @@ def background_thread_place_order(
             trades.append(emit_params)
             socketio.emit('trade_log', emit_params)
 
+    socketio.emit('trade_over', "trade is over")
+
     if not is_for_test and qty > 0:
         with app.app_context():
             send_email_notification(recipients, username)
