@@ -221,14 +221,17 @@ def signup():
 
 
 def save_order():
+    global order
+    global trades
+
     user = User.query.filter_by(email=session['email']).first()
-    newOrder = Order(
+    new＿order = Order(
         'sell',
         order['order_size'],
         order['inventory'],
         user.uid
     )
-    db.session.add(newOrder)
+    db.session.add(new＿order)
     db.session.commit()
 
     for trade in trades:
@@ -238,7 +241,7 @@ def save_order():
             trade['order_size'],
             trade['notional'],
             trade['status'],
-            newOrder.oid
+            new＿order.oid
         )
         db.session.add(newTrade)
         db.session.commit()
