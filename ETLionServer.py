@@ -111,7 +111,11 @@ def background_thread_place_order(
     if not is_for_test and qty > 0:
         with app.app_context():
             send_email_notification(recipients, username)
-    socketio.emit('trade_log', emit_params)
+
+    socketio.emit(
+        'finish_order',
+        {'is_order_finised': True}
+    )
 
 def exec_cancel_order():
     global is_order_canceled

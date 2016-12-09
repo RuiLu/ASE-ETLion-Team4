@@ -43,6 +43,10 @@ $(document).ready(function () {
         }, 500);
     });
 
+    socket.on("finish_order", function (param) {
+       console.log(param);
+    });
+
     $("form#order-form").submit(function (event) {
 
         // document.getElementById("placeOrder").disabled = true;
