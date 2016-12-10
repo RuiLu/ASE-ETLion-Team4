@@ -71,9 +71,35 @@ $(document).ready(function () {
             startHour = (parseInt(startHour) + 12).toString();
         }
 
+        /* check whether end time is valid */
         if ((parseInt(endHour) < parseInt(startHour)) ||
             (parseInt(endHour) == parseInt(startHour) && parseInt(endMin) <= parseInt(startMin))) {
-            alert("Please choose a time after NOW.");
+            alert("We are not able to do time travel!\nPlease choose a time after NOW.");
+            return false;
+        }
+
+        var orderDiscount = $("#order_discount").val();
+        var orderSize = $("#order_size").val();
+        var inventoryInput = $("#inventory").val();
+
+        /* check if order discount, order size, and total shares are all numbers */
+        if (isNaN(orderDiscount) || isNaN(orderSize) || isNaN(inventoryInput)) {
+            alert("Ouch! Please validate your input(s), allow NUMBER only.");
+            return false;
+        }
+
+        if (orderDiscount == "" || orderSize == "" || inventoryInput == "") {
+            alert("Oops, you forgot input something.");
+            return false;
+        }
+
+        if (parseInt(orderDiscount) < 0 || parseInt(orderSize) < 0 || parseInt(inventoryInput) < 0) {
+            alert("Hummm, we cannot accept negative inputs.");
+            return false;
+        }
+
+        if (parseInt(orderSize) > parseInt(inventoryInput)) {
+            alert("Hey, total shares must be bigger than or equal to order size.");
             return false;
         }
 
