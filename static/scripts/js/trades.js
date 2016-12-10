@@ -121,6 +121,7 @@ $(document).ready(function () {
         
         var div = document.createElement('div');
         div.className = 'panel panel-default';
+        div.setAttribute('id', 'each-panel');
         div.innerHTML += '<div class="panel-heading">' +
                             '<h4 class="panel-title">' +
                                 '<a data-toggle="collapse" href="#collapse' + count +'">Order-' + count + '</a>' +
@@ -140,6 +141,71 @@ $(document).ready(function () {
         $(historyTableId).find("tbody").prepend(historyInfo);
 
         count++;
+    });
+
+    $("#cdr").click(function (event) {
+        console.log("cdr");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Custom Date Range   ";
+
+        $("#choose-from-specific").remove();
+        $("#choose-from-range").remove();
+
+        var div = document.createElement('div');
+        div.setAttribute('id', 'choose-from-range');
+        div.innerHTML += '<form>' +
+                            '<input type="date" id="fromPicker">' +
+                            '<input type="date" id="toPicker">' +
+                            '<input type="button" id="rangeSubmitView" value="View">' +
+                        '</form>';
+        document.getElementById("choose-date-div").appendChild(div);
+    });
+
+    $("#sd").click(function (event) {
+        console.log("sd");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Specific Date   ";
+        
+        $("#choose-from-specific").remove();
+        $("#choose-from-range").remove();
+
+        var div = document.createElement('div');
+        div.setAttribute('id', 'choose-from-specific');
+        div.innerHTML += '<form>' +
+                            '<input type="date" id="datePicker">' +
+                            '<input type="button" id="specificSubmitView" value="View">' +
+                        '</form>';
+        document.getElementById("choose-date-div").appendChild(div);
+    });
+
+    $("#l7d").click(function (event) {
+        console.log("l7d");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Last 7 days   ";
+
+        $("#choose-from-range").remove();
+        $("#choose-from-specific").remove();
+    });
+
+    $("#l30d").click(function (event) {
+        console.log("l30d");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Last 30 days   ";
+
+        $("#choose-from-range").remove();
+        $("#choose-from-specific").remove();
+    });
+
+    $("#choose-date-div").on("click", "#rangeSubmitView", function (event) {
+        var startDate = $("#fromPicker").val();
+        var endDate = $("#toPicker").val();
+        console.log(startDate);
+        console.log(endDate);
+    });
+
+    $("#choose-date-div").on("click", "#specificSubmitView", function (event) {
+        var date = $("#datePicker").val();
+        console.log(date);
     });
 });
 
