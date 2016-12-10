@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <main class="container">
+        <div class="row">
+            <div class="sign col-md-6">
+                <span style="font-size:25px;color:#FFFFFF">Hi, Trader {{ username }}</span>
+            </div>
+            <div class="sign col-md-6" align="right">
+                <a class="btn" id="testAdd">Add</a>
+                <a href="{{ url_for('trade') }}" class="btn" id="btn-history">Main Page</a>
+                <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+            </div>
+        </div>
+        <div class="sign row" style="overflow: scroll;">
+            
+            <div class="panel-group" id="history-group">
+                
+            </div>
+        </div>
+
+    </main>
+
+{% endblock %}

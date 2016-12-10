@@ -215,6 +215,16 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+@app.route("/history", methods=[GET, POST])
+def history():
+    if not is_user_in_session():
+        return redirect(url_for('index', username=session['username']))
+    else:
+        return render_template(
+            "history.html",
+            async_mode=socketio.async_mode,
+            username=session['username']
+        )
 
 def save_order(user_email):
     global order
