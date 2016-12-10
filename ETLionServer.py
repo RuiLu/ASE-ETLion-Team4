@@ -119,6 +119,7 @@ def background_thread_place_order(
     if not is_for_test and qty > 0:
         with app.app_context():
             send_email_notification(recipients, username)
+            save_order(recipients)
 
 def exec_cancel_order():
     global is_order_canceled
@@ -158,7 +159,7 @@ def calculate(post_params):
         )
 
     # save all order
-    # save_order()
+    save_order()
 
 def is_user_in_session():
     return ('email' in session and 'username' in session)
@@ -220,11 +221,11 @@ def signup():
         return render_template('signup.html', form=form)
 
 
-def save_order():
+def save_order(user_email):
     global order
     global trades
 
-    user = User.query.filter_by(email=session['email']).first()
+    user = User.query.filter_by(email=user_email).first()
     new_order = Order(
         'sell',
         order['order_size'],
