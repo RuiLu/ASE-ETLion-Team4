@@ -115,7 +115,7 @@ $(document).ready(function () {
             order_size: $("#order_size").val(),
             inventory: $("#inventory").val(),
             total_duration: duration,
-            start_time: startTime;
+            start_time: startTime,
             start_date: startDate
         });
 
