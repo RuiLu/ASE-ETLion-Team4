@@ -7,4 +7,4 @@
 *.doc[x]
 *.ppt[x]
 *.json
-.idea/*
+docs/_build/html/*

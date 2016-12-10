@@ -16,12 +16,14 @@ client-side application can use any of the `SocketIO <http://socket.io>`_
 official clients libraries in Javascript, C++, Java and Swift, or any
 compatible client to establish a permanent connection to the server.
 
-Installation
-------------
+Installation & Set Up
+---------------------
 
 You can install this package in the usual way using ``pip``::
 
-    pip install flask-socketio
+    pip install requirement.txt
+    python server.py
+    python ETLionServer.py
 
 Requirements
 ------------
@@ -29,23 +31,6 @@ Requirements
 Flask-SocketIO is compatible with both Python 2.7 and Python 3.3+. The
 asynchronous services that this package relies on can be selected among three
 choices:
-
-- `eventlet <http://eventlet.net/>`_ is the best performant option, with
-  support for long-polling and WebSocket transports.
-- `gevent <http://www.gevent.org/>`_ is supported in a number of different
-  configurations. The long-polling transport is fully supported with the
-  gevent package, but unlike eventlet, gevent does not have native WebSocket
-  support. To add support for WebSocket there are currently two options. The
-  `gevent-websocket <https://pypi.python.org/pypi/gevent-websocket/>`_
-  package adds WebSocket support to gevent, but unfortunately this package is
-  current only available for Python 2. The other alternative is to use the
-  `uWSGI <https://uwsgi-docs.readthedocs.io/en/latest/>`_ web server, which
-  comes with WebSocket functionality. The use of gevent is also a performant
-  option, but slightly lower than eventlet.
-- The Flask development server based on Werkzeug can be used as well, with the
-  caveat that it lacks the performance of the other two options, so it should
-  only be used to simplify the development workflow. This option only supports
-  the long-polling transport.
 
 The extension automatically detects which asynchronous framework to use based
 on what is installed. Preference is given to eventlet, followed by gevent.
