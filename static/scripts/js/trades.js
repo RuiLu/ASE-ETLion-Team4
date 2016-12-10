@@ -72,9 +72,35 @@ $(document).ready(function () {
             startHour = (parseInt(startHour) + 12).toString();
         }
 
+        /* check whether end time is valid */
         if ((parseInt(endHour) < parseInt(startHour)) ||
             (parseInt(endHour) == parseInt(startHour) && parseInt(endMin) <= parseInt(startMin))) {
-            alert("Please choose a time after NOW.");
+            alert("We are not able to do time travel!\nPlease choose a time after NOW.");
+            return false;
+        }
+
+        var orderDiscount = $("#order_discount").val();
+        var orderSize = $("#order_size").val();
+        var inventoryInput = $("#inventory").val();
+
+        /* check if order discount, order size, and total shares are all numbers */
+        if (isNaN(orderDiscount) || isNaN(orderSize) || isNaN(inventoryInput)) {
+            alert("Ouch! Please validate your input(s), allow NUMBER only.");
+            return false;
+        }
+
+        if (orderDiscount == "" || orderSize == "" || inventoryInput == "") {
+            alert("Oops, you forgot input something.");
+            return false;
+        }
+
+        if (parseInt(orderDiscount) < 0 || parseInt(orderSize) < 0 || parseInt(inventoryInput) < 0) {
+            alert("Hummm, we cannot accept negative inputs.");
+            return false;
+        }
+
+        if (parseInt(orderSize) > parseInt(inventoryInput)) {
+            alert("Hey, total shares must be bigger than or equal to order size.");
             return false;
         }
 
@@ -114,6 +140,101 @@ $(document).ready(function () {
         $("#cancelOrder").prop("disabled",true);
         socket.emit('cancel_order');
         return false;
+    });
+
+    var count = 1;
+
+    $("#testAdd").click(function (event) {
+        
+        console.log("add");
+        
+        var div = document.createElement('div');
+        div.className = 'panel panel-default';
+        div.setAttribute('id', 'each-panel');
+        div.innerHTML += '<div class="panel-heading">' +
+                            '<h4 class="panel-title">' +
+                                '<a data-toggle="collapse" href="#collapse' + count +'">Order-' + count + '</a>' +
+                            '</h4>' +
+                        '</div>' +
+                        '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                            '<table class = "table" id="history-table-' + count + '">' +
+                                '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                '<tbody id="history-log-'+ count +'">' + 
+                                '</tbody>'
+                            '</table>'+
+                        '</div>';
+        document.getElementById("history-group").appendChild(div);    
+
+        var historyTableId = "#history-table-" + count;
+        var historyInfo = '<tr><td>1</td><td>Sell</td><td>120.00</td><td>10</td><td>1200</td><td>2016-12-09</td><td>Success</td></tr>"';
+        $(historyTableId).find("tbody").prepend(historyInfo);
+
+        count++;
+    });
+
+    $("#cdr").click(function (event) {
+        console.log("cdr");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Custom Date Range   ";
+
+        $("#choose-from-specific").remove();
+        $("#choose-from-range").remove();
+
+        var div = document.createElement('div');
+        div.setAttribute('id', 'choose-from-range');
+        div.innerHTML += '<form>' +
+                            '<input type="date" id="fromPicker">' +
+                            '<input type="date" id="toPicker">' +
+                            '<input type="button" id="rangeSubmitView" value="View">' +
+                        '</form>';
+        document.getElementById("choose-date-div").appendChild(div);
+    });
+
+    $("#sd").click(function (event) {
+        console.log("sd");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Specific Date   ";
+        
+        $("#choose-from-specific").remove();
+        $("#choose-from-range").remove();
+
+        var div = document.createElement('div');
+        div.setAttribute('id', 'choose-from-specific');
+        div.innerHTML += '<form>' +
+                            '<input type="date" id="datePicker">' +
+                            '<input type="button" id="specificSubmitView" value="View">' +
+                        '</form>';
+        document.getElementById("choose-date-div").appendChild(div);
+    });
+
+    $("#l7d").click(function (event) {
+        console.log("l7d");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Last 7 days   ";
+
+        $("#choose-from-range").remove();
+        $("#choose-from-specific").remove();
+    });
+
+    $("#l30d").click(function (event) {
+        console.log("l30d");
+        var text = document.getElementById("dropdownMenu").firstChild;
+        text.data = "Last 30 days   ";
+
+        $("#choose-from-range").remove();
+        $("#choose-from-specific").remove();
+    });
+
+    $("#choose-date-div").on("click", "#rangeSubmitView", function (event) {
+        var startDate = $("#fromPicker").val();
+        var endDate = $("#toPicker").val();
+        console.log(startDate);
+        console.log(endDate);
+    });
+
+    $("#choose-date-div").on("click", "#specificSubmitView", function (event) {
+        var date = $("#datePicker").val();
+        console.log(date);
     });
 });
 

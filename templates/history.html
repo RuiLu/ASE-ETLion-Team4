@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <main class="container">
+        <div class="row">
+            <div class="sign col-md-6">
+                <span style="font-size:25px;color:#FFFFFF">Hi, Trader {{ username }}</span>
+            </div>
+            <div class="sign col-md-6" align="right">
+                <a class="btn" id="testAdd">Add</a>
+                <a href="{{ url_for('trade') }}" class="btn" id="btn-history">Main Page</a>
+                <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
+            </div>
+        </div>
+        <div class="sign row" id="choose-date-div">
+            <div class="col-xs-2">
+                <div class="sign dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Last 30 days
+                    <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="#" id="cdr">Custom Date Range</a></li>
+                        <li><a href="#" id="sd">Specific Date</a></li>
+                        <li><a href="#" id="l7d">Last 7 days</a></li>
+                        <li><a href="#" id="l30d">Last 30 days</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="sign row" style="overflow: scroll;">
+            <div class="panel-group" id="history-group">
+                
+            </div>
+        </div>
+
+    </main>
+
+{% endblock %}

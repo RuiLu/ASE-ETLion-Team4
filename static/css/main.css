@@ -317,3 +317,28 @@ input.btn:hover {
     margin-left: 20px;
     font-size: 15px;
 }
+
+#datePicker, #fromPicker, #toPicker {
+    margin-left: 10px;
+    height: 40px;
+}
+
+#rangeSubmitView, #specificSubmitView {
+    width: 70px;
+    height: 40px;
+    margin-left: 10px;
+    color: white;
+    background-color: darkgrey;
+    border-width: 0px;
+    border-radius: 5px;
+}
+
+#dropdownMenu {
+    height: 40px;
+    width: 100%;
+}
+
+#each-panel {
+    margin-top: 15px;
+    margin-left: 15px;
+}
