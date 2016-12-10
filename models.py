@@ -33,12 +33,14 @@ class Order(db.Model):
     type = db.Column(db.String(40))
     size = db.Column(db.Integer)
     inventory = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime)
 
-    def __init__(self, type, size, inventory, uid):
+    def __init__(self, type, size, inventory, uid, timestamp):
         self.type = type.title()
         self.size = size
         self.inventory = inventory
         self.uid = uid
+        self.timestamp = timestamp
 
 
 class Trade(db.Model):
@@ -50,11 +52,13 @@ class Trade(db.Model):
     shares = db.Column(db.Float)
     notional = db.Column(db.Float)
     status = db.Column(db.String(40))
+    timestamp = db.Column(db.DateTime)
 
-    def __init__(self, type, price, shares, notional, status, oid):
+    def __init__(self, type, price, shares, notional, status, oid, timestamp):
         self.type = type.title()
         self.price = price
         self.shares = shares
         self.notional = notional
         self.status = status.title()
         self.oid = oid
+        self.timestamp = timestamp

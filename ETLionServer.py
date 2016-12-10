@@ -51,7 +51,7 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, total_duration,
+        order_discount, order_size, inventory, total_duration, start_time, start_date,
         recipients=[], username="", is_for_test=False
     ):
     order_discount = int(order_discount)
@@ -215,6 +215,8 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+def get_all_order(user_email):
+    user = User.query.filter_by(email=user_email).all()
 
 def save_order(user_email):
     global order
@@ -225,7 +227,8 @@ def save_order(user_email):
         'sell',
         order['order_size'],
         order['inventory'],
-        user.uid
+        user.uid,
+        datetime.strptime(order['start_date'] + " " + order['start_time'], "%m/%d/%Y %I:%M:%S %p").time()
     )
     db.session.add(new_order)
     db.session.commit()
@@ -237,7 +240,8 @@ def save_order(user_email):
             trade['order_size'],
             trade['notional'],
             trade['status'],
-            new_order.oid
+            new_order.oid,
+            #trade['timestamp']
         )
         db.session.add(newTrade)
         db.session.commit()
