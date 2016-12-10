@@ -110,7 +110,6 @@ def background_thread_place_order(
                 'timestamp': timestamp,
                 'status': 'success'
             }
-            print emit_params
             trades.append(emit_params)
             socketio.emit('trade_log', emit_params)
 
@@ -147,8 +146,7 @@ def calculate(post_params):
 
     print post_params
 
-    if post_params and post_params.get("is_for_test"):
-        del post_params["is_for_test"]
+    if post_params.get("is_for_test"):
         background_thread_place_order(**post_params)
     else:
         global thread
