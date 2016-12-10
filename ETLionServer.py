@@ -158,9 +158,6 @@ def calculate(post_params):
             target=background_thread_place_order, **post_params
         )
 
-    # save all order
-    save_order()
-
 def is_user_in_session():
     return ('email' in session and 'username' in session)
 
