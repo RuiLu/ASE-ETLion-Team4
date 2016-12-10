@@ -97,8 +97,9 @@ def background_thread_place_order(
             notional = int(price * order_size)
             pnl += notional
             qty -= order_size
-            print "Sold {:,} for ${:,}/share, ${:,} notional".format(
-                order_size, price, notional
+            order_size = order_size if qty > 0 else qty + order_size
+            print "Sold {:,} for ${:,}/share, ${:,} notional, ${:,} qty left".format(
+                order_size, price, notional, qty
             )
             emit_params = {
                 'order_size': order_size,
@@ -110,6 +111,7 @@ def background_thread_place_order(
                 'timestamp': timestamp,
                 'status': 'success'
             }
+            print emit_params
             trades.append(emit_params)
             socketio.emit('trade_log', emit_params)
 
@@ -144,6 +146,8 @@ def calculate(post_params):
     trades = []
     order = post_params
 
+    exec_resume_order()
+
     print post_params
 
     if post_params.get("is_for_test"):
@@ -166,7 +170,9 @@ def index():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
     else:
-        return render_template("index.html", async_mode=socketio.async_mode, form=form)
+        return render_template(
+            "index.html",async_mode=socketio.async_mode, form=form
+        )
 
 @socketio.on('cancel_order')
 def cancel(post_params={}):
