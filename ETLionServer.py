@@ -51,7 +51,7 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, total_duration, start_time, start_date,
+        order_discount, order_size, inventory, total_duration, start_datetime,
         recipients=[], username="", is_for_test=False
     ):
     order_discount = int(order_discount)
@@ -297,7 +297,7 @@ def save_order(user_email):
         order['order_size'],
         order['inventory'],
         user.uid,
-        getOrderSqlTimeStamp(order['start_date'] + " " + order['start_time'])
+        getOrderSqlTimeStamp(order['start_datetime'])
     )
     db.session.add(new_order)
     db.session.commit()
