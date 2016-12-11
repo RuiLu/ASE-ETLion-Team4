@@ -8,7 +8,6 @@
                 <span style="font-size:25px;color:#FFFFFF">Hi, Trader {{ username }}</span>
             </div>
             <div class="sign col-md-6" align="right">
-                <a class="btn" id="testAdd">Add</a>
                 <a href="{{ url_for('trade') }}" class="btn" id="btn-history">Main Page</a>
                 <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
             </div>
@@ -36,7 +35,51 @@
                 
             </div>
         </div>
+        <script>
+            var json = '{{ all_orders }}';
+            var find = "&#34;";
+            var re = new RegExp(find, 'g');
+            json = json.replace(re, "\"");
+            find = "\"\"";
+            re = new RegExp(find, 'g');
+            json = json.replace(re, "\"");
+            var obj = JSON.parse(json);
 
+            var count = 1;
+
+            var div = document.createElement('div');
+            div.className = 'panel panel-default';
+            div.setAttribute('id', 'each-panel');
+            div.innerHTML += '<div class="panel-heading" id="panel-title">' +
+                                '<h4 class="panel-title">' +
+                                    '<a data-toggle="collapse" href="#collapse' + count +
+                                    '">Start Time - ' + obj.timestamp.replace('T', ' ') +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Total shares - ' + obj.inventory +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Type - ' + obj.type + '</a>' +
+                                '</h4>' +
+                            '</div>' +
+                            '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                                '<table class = "table" id="history-table-' + count + '">' +
+                                    '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                    '<tbody id="history-log-'+ count +'">' + 
+                                    '</tbody>'
+                                '</table>'+
+                            '</div>';
+            document.getElementById("history-group").appendChild(div);    
+
+            for (i = 0; i < obj.trades.length; i++) {
+                var historyTableId = "#history-table-" + count;
+                var historyInfo = '<tr><td>' + obj.trades[i].tid + '</td>' + 
+                                  '<td>' + obj.trades[i].type + '</td>' + 
+                                  '<td>' + obj.trades[i].price + '</td>' + 
+                                  '<td>' + obj.trades[i].shares + '</td>' + 
+                                  '<td>' + obj.trades[i].notional + '</td>' + 
+                                  '<td>' + obj.trades[i].timestamp.replace('T', ' ') + '</td>' + 
+                                  '<td>' + obj.trades[i].status + '</td></tr>"';
+                $(historyTableId).find("tbody").prepend(historyInfo);
+            }
+
+        </script>
     </main>
 
 {% endblock %}

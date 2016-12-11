@@ -54,7 +54,6 @@ $(document).ready(function () {
 
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
-        var startDate = new Date().toLocaleDateString();
 
         var endTokens = endTime.split(":");
         var startTokens = startTime.split(":");
@@ -114,9 +113,7 @@ $(document).ready(function () {
             order_discount: $("#order_discount").val(),
             order_size: $("#order_size").val(),
             inventory: $("#inventory").val(),
-            total_duration: duration,
-            start_time: startTime,
-            start_date: startDate
+            total_duration: duration
         });
 
         soldShares = 0;
@@ -140,36 +137,6 @@ $(document).ready(function () {
         $("#cancelOrder").prop("disabled",true);
         socket.emit('cancel_order');
         return false;
-    });
-
-    var count = 1;
-
-    $("#testAdd").click(function (event) {
-        
-        console.log("add");
-        
-        var div = document.createElement('div');
-        div.className = 'panel panel-default';
-        div.setAttribute('id', 'each-panel');
-        div.innerHTML += '<div class="panel-heading">' +
-                            '<h4 class="panel-title">' +
-                                '<a data-toggle="collapse" href="#collapse' + count +'">Order-' + count + '</a>' +
-                            '</h4>' +
-                        '</div>' +
-                        '<div id="collapse' + count + '" class="panel-collapse collapse">' +
-                            '<table class = "table" id="history-table-' + count + '">' +
-                                '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
-                                '<tbody id="history-log-'+ count +'">' + 
-                                '</tbody>'
-                            '</table>'+
-                        '</div>';
-        document.getElementById("history-group").appendChild(div);    
-
-        var historyTableId = "#history-table-" + count;
-        var historyInfo = '<tr><td>1</td><td>Sell</td><td>120.00</td><td>10</td><td>1200</td><td>2016-12-09</td><td>Success</td></tr>"';
-        $(historyTableId).find("tbody").prepend(historyInfo);
-
-        count++;
     });
 
     $("#cdr").click(function (event) {

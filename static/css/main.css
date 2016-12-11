@@ -342,3 +342,8 @@ input.btn:hover {
     margin-top: 15px;
     margin-left: 15px;
 }
+
+#panel-title {
+    background-color: #CCCCCC;
+    border-width: 0px;
+}
