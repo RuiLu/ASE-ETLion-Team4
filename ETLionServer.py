@@ -228,7 +228,12 @@ def get_all_order(user_email):
 
     order_detail = {}
     for order in orders:
-        order_detail[order.oid] = []
+        order_detail['trades'] = []
+        order_detail['type'] = order.type
+        order_detail['size'] = order.size
+        order_detail['inventory'] = order.inventory
+        order_detail['timestamp'] = order.timestamp
+
         trades = Trade.query.filter_by(oid=order.oid).all()
 
         # ignore empty trades
@@ -245,7 +250,7 @@ def get_all_order(user_email):
             trade_detail['status'] = trade.status
             trade_detail['timestamp'] = trade.timestamp
 
-            order_detail[order.oid].append(trade_detail)
+            order_detail['trades'].append(trade_detail)
 
     # return order_detail
 
@@ -319,10 +324,6 @@ def login():
         if user is not None and user.check_password(password):
             session['email'] = user.email
             session['username'] = user.firstname + ' ' + user.lastname
-
-            #### test order history
-            get_all_order(session['email'])
-
             return redirect(url_for('trade', username=session['username']))
         else:
             return redirect(url_for('index'))
