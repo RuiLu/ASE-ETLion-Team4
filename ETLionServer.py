@@ -226,6 +226,28 @@ def get_all_order(user_email):
     user = User.query.filter_by(email=user_email).first()
     orders = Order.query.filter_by(uid=user.uid).all()
 
+    order_detail = {}
+    for order in orders:
+        order_detail[order.oid] = []
+        trades = Trade.query.filter_by(oid=order.oid).all()
+
+        # ignore empty trades
+        if len(trades) == 0:
+            continue
+
+        for trade in trades:
+            trade_detail = {}
+            trade_detail['tid'] = trade.tid
+            trade_detail['type'] = trade.type
+            trade_detail['price'] = trade.price
+            trade_detail['shares'] = trade.shares
+            trade_detail['notional'] = trade.notional
+            trade_detail['status'] = trade.status
+            trade_detail['timestamp'] = trade.timestamp
+
+            order_detail[order.oid].append(trade_detail)
+
+    # return order_detail
 
 
 @app.route("/history", methods=[GET, POST])
@@ -245,10 +267,12 @@ def getOrderSqlTimeStamp(datetime_str):
     formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
     return formated_time
 
+
 def getTradeSqlTimestamp(json_timestamp):
     date_time = datetime.strptime(json_timestamp, '"%Y-%m-%dT%H:%M:%S.%f"')
     formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
     return formated_time
+
 
 def save_order(user_email):
     global order
@@ -278,6 +302,7 @@ def save_order(user_email):
         db.session.add(newTrade)
         db.session.commit()
 
+
 @app.route("/login", methods=[GET, POST])
 def login():
     exec_resume_order()
@@ -294,6 +319,10 @@ def login():
         if user is not None and user.check_password(password):
             session['email'] = user.email
             session['username'] = user.firstname + ' ' + user.lastname
+
+            #### test order history
+            get_all_order(session['email'])
+
             return redirect(url_for('trade', username=session['username']))
         else:
             return redirect(url_for('index'))
