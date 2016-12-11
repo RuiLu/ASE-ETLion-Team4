@@ -87,33 +87,36 @@ def background_thread_place_order(
         order = json.loads(urllib2.urlopen(url).read())
 
         # Update the PnL if the order was filled.
+        timestamp = dumps(datetime.now(), default=json_serial)
+        price    = order['avg_price']
+        notional = int(price * order_size)
         if order['avg_price'] <= 0:
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+            order_size = 0
+            pnl = 0
+            status = "fail"
         else:
-            price    = order['avg_price']
-
-            timestamp = dumps(datetime.now(), default=json_serial)
-
-            notional = int(price * order_size)
             pnl += notional
             qty -= order_size
             order_size = order_size if qty > 0 else qty + order_size
             print "Sold {:,} for ${:,}/share, ${:,} notional, ${:,} qty left".format(
                 order_size, price, notional, qty
             )
-            emit_params = {
-                'order_size': order_size,
-                'discount_price': discount_price,
-                'share_price': price,
-                'notional': notional,
-                'pnl': pnl,
-                'total_qty': total_qty,
-                'timestamp': timestamp,
-                'status': 'success'
-            }
-            print emit_params
-            trades.append(emit_params)
-            socketio.emit('trade_log', emit_params)
+            status = "success"
+
+        emit_params = {
+            'order_size': order_size,
+            'discount_price': discount_price,
+            'share_price': price,
+            'notional': notional,
+            'pnl': pnl,
+            'total_qty': total_qty,
+            'timestamp': timestamp,
+            'status': status
+        }
+        print emit_params
+        trades.append(emit_params)
+        socketio.emit('trade_log', emit_params)
 
     socketio.emit('trade_over', "trade is over")
 
