@@ -227,9 +227,11 @@ def date_handler(obj):
 def get_all_order(user_email):
     user = User.query.filter_by(email=user_email).first()
     orders = Order.query.filter_by(uid=user.uid).all()
-    
-    order_detail = {}
+
+    all_orders = {}
+    all_orders['orders'] = []
     for order in orders:
+        order_detail = {}
         order_detail['trades'] = []
         order_detail['type'] = order.type
         order_detail['size'] = order.size
@@ -254,7 +256,9 @@ def get_all_order(user_email):
 
             order_detail['trades'].append(trade_detail)
 
-    return json.dumps(order_detail)
+        all_orders['orders'].append(order_detail)
+
+    return json.dumps(all_orders)
 
 
 @app.route("/history", methods=[GET, POST])
@@ -263,12 +267,11 @@ def history():
         return redirect(url_for('index', username=session['username']))
     else:
         email = session['email']
-        order_detail = get_all_order(email)
         return render_template(
             "history.html",
             async_mode=socketio.async_mode,
             username=session['username'],
-            all_orders=order_detail
+            all_orders=get_all_order(email)
         )
 
 
