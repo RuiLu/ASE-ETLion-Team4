@@ -54,7 +54,7 @@ $(document).ready(function () {
 
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
-        var startDate = new Date().toLocaleDateString();
+        var startDateTime = new Date().toLocaleDateString() + " " + startTime;
 
         var endTokens = endTime.split(":");
         var startTokens = startTime.split(":");
@@ -115,8 +115,7 @@ $(document).ready(function () {
             order_size: $("#order_size").val(),
             inventory: $("#inventory").val(),
             total_duration: duration,
-            start_time: startTime,
-            start_date: startDate
+            start_datetime: startDateTime
         });
 
         soldShares = 0;
