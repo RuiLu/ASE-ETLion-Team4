@@ -229,8 +229,8 @@
                     if (orderDateTokens == "null") continue;
 
                     if (parseInt(dateTokens[0]) == parseInt(orderDateTokens[0]) && 
-                        parseInt(dateTokens[1]) <= parseInt(orderDateTokens[1]) &&
-                        parseInt(dateTokens[2]) <= parseInt(orderDateTokens[2])) {
+                        parseInt(dateTokens[1]) == parseInt(orderDateTokens[1]) &&
+                        parseInt(dateTokens[2]) == parseInt(orderDateTokens[2])) {
 
                         var div = document.createElement('div');
 
