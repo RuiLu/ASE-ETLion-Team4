@@ -221,18 +221,20 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+def date_handler(obj):
+    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
 
 def get_all_order(user_email):
     user = User.query.filter_by(email=user_email).first()
     orders = Order.query.filter_by(uid=user.uid).all()
-
+    
     order_detail = {}
     for order in orders:
         order_detail['trades'] = []
         order_detail['type'] = order.type
         order_detail['size'] = order.size
         order_detail['inventory'] = order.inventory
-        order_detail['timestamp'] = order.timestamp
+        order_detail['timestamp'] = json.dumps(order.timestamp, default=date_handler)
 
         trades = Trade.query.filter_by(oid=order.oid).all()
 
@@ -248,11 +250,11 @@ def get_all_order(user_email):
             trade_detail['shares'] = trade.shares
             trade_detail['notional'] = trade.notional
             trade_detail['status'] = trade.status
-            trade_detail['timestamp'] = trade.timestamp
+            trade_detail['timestamp'] = json.dumps(trade.timestamp, default=date_handler)
 
             order_detail['trades'].append(trade_detail)
 
-    # return order_detail
+    return json.dumps(order_detail)
 
 
 @app.route("/history", methods=[GET, POST])
@@ -260,10 +262,13 @@ def history():
     if not is_user_in_session():
         return redirect(url_for('index', username=session['username']))
     else:
+        email = session['email']
+        order_detail = get_all_order(email)
         return render_template(
             "history.html",
             async_mode=socketio.async_mode,
-            username=session['username']
+            username=session['username'],
+            all_orders=order_detail
         )
 
 
