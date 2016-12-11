@@ -1,6 +1,8 @@
 import numbers
 import unittest
 
+from datetime import datetime
+
 from ETLionServer import app, socketio
 
 class ETLionServerTestCase(unittest.TestCase):
@@ -94,6 +96,9 @@ class ETLionServerTestCase(unittest.TestCase):
             "order_size": self.app.config["ORDER_SIZE"],
             "inventory": self.app.config["INVENTORY"],
             "total_duration": self.app.config["DURATION"],
+            "start_datetime": (
+                datetime.now().strftime("'%Y-%m-%d %H:%M:%S %p'")
+            ),
             "is_for_test": True
         }
         self.socketio_tester.emit("calculate", post_params)

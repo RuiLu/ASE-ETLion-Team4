@@ -23,7 +23,7 @@ $(document).ready(function () {
     // used to receive transaction data
     socket.on("trade_log", function (param) {
         console.log(param);
-        tradeInfo = "<tr><td>" + count + "</td><td>Sell</td><td>" + param.share_price + "</td><td>" + param.order_size + "</td><td>" + param.notional + "</td><td>Success</td></tr>";
+        tradeInfo = "<tr><td>" + count + "</td><td>Sell</td><td>" + param.share_price + "</td><td>" + param.order_size + "</td><td>" + param.notional + "</td><td>" + param.status + "</td></tr>";
         $("#trades-table").find("tbody").prepend(tradeInfo);
         count = count + 1;
         pnl += param.notional;
