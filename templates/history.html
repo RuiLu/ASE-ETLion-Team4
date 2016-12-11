@@ -8,18 +8,78 @@
                 <span style="font-size:25px;color:#FFFFFF">Hi, Trader {{ username }}</span>
             </div>
             <div class="sign col-md-6" align="right">
-                <a class="btn" id="testAdd">Add</a>
                 <a href="{{ url_for('trade') }}" class="btn" id="btn-history">Main Page</a>
                 <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
             </div>
         </div>
+        <div class="sign row" id="choose-date-div">
+            <div class="col-xs-2">
+                <div class="sign dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            Last 30 days
+                    <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="#" id="cdr">Custom Date Range</a></li>
+                        <li><a href="#" id="sd">Specific Date</a></li>
+                        <li><a href="#" id="l7d">Last 7 days</a></li>
+                        <li><a href="#" id="l30d">Last 30 days</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        
         <div class="sign row" style="overflow: scroll;">
-            
             <div class="panel-group" id="history-group">
                 
             </div>
         </div>
+        <script>
+            var json = '{{ all_orders }}';
+            var find = "&#34;";
+            var re = new RegExp(find, 'g');
+            json = json.replace(re, "\"");
+            find = "\"\"";
+            re = new RegExp(find, 'g');
+            json = json.replace(re, "\"");
+            var obj = JSON.parse(json);
 
+            var count = 1;
+
+            var div = document.createElement('div');
+            div.className = 'panel panel-default';
+            div.setAttribute('id', 'each-panel');
+            div.innerHTML += '<div class="panel-heading" id="panel-title">' +
+                                '<h4 class="panel-title">' +
+                                    '<a data-toggle="collapse" href="#collapse' + count +
+                                    '">Start Time - ' + obj.timestamp.replace('T', ' ') +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Total shares - ' + obj.inventory +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Type - ' + obj.type + '</a>' +
+                                '</h4>' +
+                            '</div>' +
+                            '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                                '<table class = "table" id="history-table-' + count + '">' +
+                                    '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                    '<tbody id="history-log-'+ count +'">' + 
+                                    '</tbody>'
+                                '</table>'+
+                            '</div>';
+            document.getElementById("history-group").appendChild(div);    
+
+            for (i = 0; i < obj.trades.length; i++) {
+                var historyTableId = "#history-table-" + count;
+                var historyInfo = '<tr><td>' + obj.trades[i].tid + '</td>' + 
+                                  '<td>' + obj.trades[i].type + '</td>' + 
+                                  '<td>' + obj.trades[i].price + '</td>' + 
+                                  '<td>' + obj.trades[i].shares + '</td>' + 
+                                  '<td>' + obj.trades[i].notional + '</td>' + 
+                                  '<td>' + obj.trades[i].timestamp.replace('T', ' ') + '</td>' + 
+                                  '<td>' + obj.trades[i].status + '</td></tr>"';
+                $(historyTableId).find("tbody").prepend(historyInfo);
+            }
+
+        </script>
     </main>
 
 {% endblock %}

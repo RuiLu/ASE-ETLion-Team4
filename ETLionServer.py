@@ -51,7 +51,7 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, total_duration,
+        order_discount, order_size, inventory, total_duration, start_time, start_date,
         recipients=[], username="", is_for_test=False
     ):
     order_discount = int(order_discount)
@@ -224,16 +224,68 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
+def date_handler(obj):
+    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+
+def get_all_order(user_email):
+    user = User.query.filter_by(email=user_email).first()
+    orders = Order.query.filter_by(uid=user.uid).all()
+    
+    order_detail = {}
+    for order in orders:
+        order_detail['trades'] = []
+        order_detail['type'] = order.type
+        order_detail['size'] = order.size
+        order_detail['inventory'] = order.inventory
+        order_detail['timestamp'] = json.dumps(order.timestamp, default=date_handler)
+
+        trades = Trade.query.filter_by(oid=order.oid).all()
+
+        # ignore empty trades
+        if len(trades) == 0:
+            continue
+
+        for trade in trades:
+            trade_detail = {}
+            trade_detail['tid'] = trade.tid
+            trade_detail['type'] = trade.type
+            trade_detail['price'] = trade.price
+            trade_detail['shares'] = trade.shares
+            trade_detail['notional'] = trade.notional
+            trade_detail['status'] = trade.status
+            trade_detail['timestamp'] = json.dumps(trade.timestamp, default=date_handler)
+
+            order_detail['trades'].append(trade_detail)
+
+    return json.dumps(order_detail)
+
+
 @app.route("/history", methods=[GET, POST])
 def history():
     if not is_user_in_session():
         return redirect(url_for('index', username=session['username']))
     else:
+        email = session['email']
+        order_detail = get_all_order(email)
         return render_template(
             "history.html",
             async_mode=socketio.async_mode,
-            username=session['username']
+            username=session['username'],
+            all_orders=order_detail
         )
+
+
+def getOrderSqlTimeStamp(datetime_str):
+    date_time = datetime.strptime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
+
+def getTradeSqlTimestamp(json_timestamp):
+    date_time = datetime.strptime(json_timestamp, '"%Y-%m-%dT%H:%M:%S.%f"')
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
 
 def save_order(user_email):
     global order
@@ -244,7 +296,8 @@ def save_order(user_email):
         'sell',
         order['order_size'],
         order['inventory'],
-        user.uid
+        user.uid,
+        getOrderSqlTimeStamp(order['start_date'] + " " + order['start_time'])
     )
     db.session.add(new_order)
     db.session.commit()
@@ -256,10 +309,12 @@ def save_order(user_email):
             trade['order_size'],
             trade['notional'],
             trade['status'],
-            new_order.oid
+            new_order.oid,
+            getTradeSqlTimestamp(trade['timestamp'])
         )
         db.session.add(newTrade)
         db.session.commit()
+
 
 @app.route("/login", methods=[GET, POST])
 def login():
