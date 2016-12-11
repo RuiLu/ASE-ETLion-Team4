@@ -223,7 +223,9 @@ def signup():
 
 
 def get_all_order(user_email):
-    user = User.query.filter_by(email=user_email).all()
+    user = User.query.filter_by(email=user_email).first()
+    orders = Order.query.filter_by(uid=user.uid).all()
+
 
 
 @app.route("/history", methods=[GET, POST])
@@ -237,6 +239,17 @@ def history():
             username=session['username']
         )
 
+
+def getOrderSqlTimeStamp(datetime_str):
+    date_time = datetime.strptime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
+def getTradeSqlTimestamp(json_timestamp):
+    date_time = datetime.strptime(json_timestamp, '"%Y-%m-%dT%H:%M:%S.%f"')
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
 def save_order(user_email):
     global order
     global trades
@@ -247,7 +260,7 @@ def save_order(user_email):
         order['order_size'],
         order['inventory'],
         user.uid,
-        datetime.strptime(order['start_date'] + " " + order['start_time'], "%m/%d/%Y %I:%M:%S %p").time()
+        getOrderSqlTimeStamp(order['start_date'] + " " + order['start_time'])
     )
     db.session.add(new_order)
     db.session.commit()
@@ -260,7 +273,7 @@ def save_order(user_email):
             trade['notional'],
             trade['status'],
             new_order.oid,
-            #trade['timestamp']
+            getTradeSqlTimestamp(trade['timestamp'])
         )
         db.session.add(newTrade)
         db.session.commit()
