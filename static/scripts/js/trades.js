@@ -55,6 +55,7 @@ $(document).ready(function () {
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
         var startDateTime = new Date().toLocaleDateString() + " " + startTime;
+        console.log(startDateTime);
 
         var endTokens = endTime.split(":");
         var startTokens = startTime.split(":");

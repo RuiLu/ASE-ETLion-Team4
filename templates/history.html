@@ -141,13 +141,132 @@
             $("#choose-date-div").on("click", "#rangeSubmitView", function (event) {
                 var startDate = $("#fromPicker").val();
                 var endDate = $("#toPicker").val();
-                console.log(startDate);
-                console.log(endDate);
+                
+                if (startDate == "" || endDate == "") {
+                    alert("Please select date.");
+                    return false;
+                }
+
+                while (count-- > 0) {
+                    $("#each-panel").remove();
+                }
+
+                var startTokens = startDate.split("-");
+                var endTokens = endDate.split("-");
+
+                count = 1;
+
+                for (i = obj.orders.length - 1; i >= 0; i--) {    
+                    var order = obj.orders[i];
+                    var orderDateTokens = order.timestamp.split("T")[0].split("-");
+
+                    if (orderDateTokens == "null") continue;
+
+                    if (parseInt(startTokens[0]) <= parseInt(orderDateTokens[0]) && 
+                        parseInt(endTokens[0]) >= parseInt(orderDateTokens[0]) &&
+                        parseInt(startTokens[1]) <= parseInt(orderDateTokens[1]) &&
+                        parseInt(endTokens[1]) >= parseInt(orderDateTokens[1]) && 
+                        parseInt(startTokens[2]) <= parseInt(orderDateTokens[2]) &&
+                        parseInt(endTokens[2]) >= parseInt(orderDateTokens[2])) {
+
+                        var div = document.createElement('div');
+
+                        div.className = 'panel panel-default';
+                        div.setAttribute('id', 'each-panel');
+                        div.innerHTML += '<div class="panel-heading" id="panel-title">' +
+                                            '<h4 class="panel-title">' +
+                                                '<a data-toggle="collapse" href="#collapse' + count +
+                                                '">Start Time - ' + order.timestamp.replace('T', ' ') +
+                                                '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Total shares - ' + order.inventory +
+                                                '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Type - ' + order.type + '</a>' +
+                                            '</h4>' +
+                                        '</div>' +
+                                        '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                                            '<table class = "table" id="history-table-' + count + '">' +
+                                                '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                                '<tbody id="history-log-'+ count +'">' + 
+                                                '</tbody>'
+                                            '</table>'+
+                                        '</div>';
+                        document.getElementById("history-group").appendChild(div);    
+
+                        for (j = 0; j < order.trades.length; j++) {
+                            var historyTableId = "#history-table-" + count;
+                            var historyInfo = '<tr><td>' + order.trades[j].tid + '</td>' + 
+                                              '<td>' + order.trades[j].type + '</td>' + 
+                                              '<td>' + order.trades[j].price + '</td>' + 
+                                              '<td>' + order.trades[j].shares + '</td>' + 
+                                              '<td>' + order.trades[j].notional + '</td>' + 
+                                              '<td>' + order.trades[j].timestamp.replace('T', ' ') + '</td>' + 
+                                              '<td>' + order.trades[j].status + '</td></tr>"';
+                            $(historyTableId).find("tbody").prepend(historyInfo);
+                        }
+                        count++;
+                    }
+                }
             });
 
             $("#choose-date-div").on("click", "#specificSubmitView", function (event) {
                 var date = $("#datePicker").val();
-                console.log(date);
+                
+                if (date == "") {
+                    alert("Please select date.");
+                    return false;
+                }
+
+                while (count-- > 0) {
+                    $("#each-panel").remove();
+                }
+
+                var dateTokens = date.split("-");
+
+                count = 1;
+
+                for (i = obj.orders.length - 1; i >= 0; i--) {    
+                    var order = obj.orders[i];
+                    var orderDateTokens = order.timestamp.split("T")[0].split("-");
+
+                    if (orderDateTokens == "null") continue;
+
+                    if (parseInt(dateTokens[0]) == parseInt(orderDateTokens[0]) && 
+                        parseInt(dateTokens[1]) <= parseInt(orderDateTokens[1]) &&
+                        parseInt(dateTokens[2]) <= parseInt(orderDateTokens[2])) {
+
+                        var div = document.createElement('div');
+
+                        div.className = 'panel panel-default';
+                        div.setAttribute('id', 'each-panel');
+                        div.innerHTML += '<div class="panel-heading" id="panel-title">' +
+                                            '<h4 class="panel-title">' +
+                                                '<a data-toggle="collapse" href="#collapse' + count +
+                                                '">Start Time - ' + order.timestamp.replace('T', ' ') +
+                                                '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Total shares - ' + order.inventory +
+                                                '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Type - ' + order.type + '</a>' +
+                                            '</h4>' +
+                                        '</div>' +
+                                        '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                                            '<table class = "table" id="history-table-' + count + '">' +
+                                                '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                                '<tbody id="history-log-'+ count +'">' + 
+                                                '</tbody>'
+                                            '</table>'+
+                                        '</div>';
+                        document.getElementById("history-group").appendChild(div);    
+
+                        for (j = 0; j < order.trades.length; j++) {
+                            var historyTableId = "#history-table-" + count;
+                            var historyInfo = '<tr><td>' + order.trades[j].tid + '</td>' + 
+                                              '<td>' + order.trades[j].type + '</td>' + 
+                                              '<td>' + order.trades[j].price + '</td>' + 
+                                              '<td>' + order.trades[j].shares + '</td>' + 
+                                              '<td>' + order.trades[j].notional + '</td>' + 
+                                              '<td>' + order.trades[j].timestamp.replace('T', ' ') + '</td>' + 
+                                              '<td>' + order.trades[j].status + '</td></tr>"';
+                            $(historyTableId).find("tbody").prepend(historyInfo);
+                        }
+                        count++;
+                    }
+                }
             });
 
         </script>
