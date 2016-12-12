@@ -1,6 +1,8 @@
 import numbers
 import unittest
 
+from datetime import datetime
+
 from ETLionServer import app, socketio
 
 class ETLionServerTestCase(unittest.TestCase):
@@ -15,7 +17,7 @@ class ETLionServerTestCase(unittest.TestCase):
                 ORDER_DISCOUNT = 10,
                 ORDER_SIZE = 200,
                 INVENTORY = 1000,
-                TRADING_FREQ = 2
+                DURATION = 10
             )
         )
         self.tester = self.app.test_client()
@@ -90,14 +92,18 @@ class ETLionServerTestCase(unittest.TestCase):
         )
         self.socketio_tester = socketio.test_client(self.app)
         post_params = {
-            "order_discount": self.app.config["ORDER_DISCOUNT"],
             "order_size": self.app.config["ORDER_SIZE"],
             "inventory": self.app.config["INVENTORY"],
-            "trading_frequency": self.app.config["TRADING_FREQ"],
+            "total_duration": self.app.config["DURATION"],
+            "start_datetime": (
+                datetime.now().strftime("'%Y-%m-%d %H:%M:%S %p'")
+            ),
             "is_for_test": True
         }
         self.socketio_tester.emit("calculate", post_params)
         receiveds = self.socketio_tester.get_received()
+        last_received = receiveds[-1]
+        receiveds = receiveds[:-1]
         self.assertEqual(
             len(receiveds),
             self.app.config["INVENTORY"] / self.app.config["ORDER_SIZE"]
@@ -141,6 +147,10 @@ class ETLionServerTestCase(unittest.TestCase):
             self.assertEqual(
                 received["name"],
                 "trade_log"
+            )
+            self.assertEqual(
+                "trade is over",
+                last_received["args"][0],
             )
 
 

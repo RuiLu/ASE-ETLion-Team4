@@ -17,7 +17,7 @@ from AppUtil import init_app
 from Enum import POST, GET
 from Enum import QUERY_URL, ORDER_URL
 from ETLionMail import get_email_html
-from forms import SignupForm, LoginForm, saveOrderForm, saveTradeForm
+from forms import SignupForm, LoginForm
 from models import db, User, Order, Trade
 
 app = init_app()
@@ -26,9 +26,13 @@ mail = Mail(app)
 
 db.init_app(app)
 
-socketio = SocketIO(app, async_mode=None)
+socketio = SocketIO(app, async_mode="eventlet")
 thread = None
 is_order_canceled = False
+
+# latest order/trade info
+order = {}
+trades = []
 
 def send_email_notification(recipients, username):
     if not isinstance(recipients, list):
@@ -47,13 +51,18 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, trading_frequency,
+        order_size, inventory, total_duration, start_datetime,
         recipients=[], username="", is_for_test=False
     ):
-    order_discount = int(order_discount)
+    order_discount = 10
     order_size = int(order_size)
     inventory = int(inventory)
-    trading_freq = int(trading_frequency)
+    duration = int(total_duration)
+
+    times = duration / (inventory / order_size)
+    trading_freq = int(times)
+
+    print "!!!!!!frequency: ", trading_freq
 
     # Start with all shares and no profit
     total_qty = qty = inventory
@@ -78,34 +87,45 @@ def background_thread_place_order(
         order = json.loads(urllib2.urlopen(url).read())
 
         # Update the PnL if the order was filled.
+        timestamp = dumps(datetime.now(), default=json_serial)
+        price    = order['avg_price']
+        notional = int(price * order_size)
         if order['avg_price'] <= 0:
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+            print "order_discount", order_discount
+            order_size = 0
+            pnl = 0
+            status = "fail"
+            order_discount += 1
         else:
-            price    = order['avg_price']
-
-            timestamp = dumps(datetime.now(), default=json_serial)
-
-            notional = int(price * order_size)
             pnl += notional
             qty -= order_size
-            print "Sold {:,} for ${:,}/share, ${:,} notional".format(
-                order_size, price, notional
+            order_size = order_size if qty > 0 else qty + order_size
+            print "Sold {:,} for ${:,}/share, ${:,} notional, ${:,} qty left".format(
+                order_size, price, notional, qty
             )
-            emit_params = {
-                'order_size': order_size,
-                'discount_price': discount_price,
-                'share_price': price,
-                'notional': notional,
-                'pnl': pnl,
-                'total_qty': total_qty,
-                'timestamp': timestamp
-            }
-            print "PnL ${:,}, Qty {:,}".format(pnl, qty)
-            socketio.emit('trade_log', emit_params)
+            status = "success"
+
+        emit_params = {
+            'order_size': order_size,
+            'discount_price': discount_price,
+            'share_price': price,
+            'notional': notional,
+            'pnl': pnl,
+            'total_qty': total_qty,
+            'timestamp': timestamp,
+            'status': status
+        }
+        print emit_params
+        trades.append(emit_params)
+        socketio.emit('trade_log', emit_params)
+
+    socketio.emit('trade_over', "trade is over")
 
     if not is_for_test:
-        with app.test_request_context(): # wth does this mean?
+        with app.app_context():
             send_email_notification(recipients, username)
+            save_order(recipients, 'completed' if qty == 0 else 'interrupted')
 
 def exec_cancel_order():
     global is_order_canceled
@@ -125,7 +145,18 @@ def test_disconnect():
 
 @socketio.on('calculate')
 def calculate(post_params):
-    if post_params and post_params.get("is_for_test"):
+    #clear last order detail
+    global trades
+    global order
+    trades = []
+    order = post_params
+
+    exec_resume_order()
+
+
+    print "calculate", post_params
+
+    if post_params.get("is_for_test"):
         background_thread_place_order(**post_params)
     else:
         global thread
@@ -145,7 +176,9 @@ def index():
     if is_user_in_session():
         return redirect(url_for('trade', username=session['username']))
     else:
-        return render_template("index.html", async_mode=socketio.async_mode, form=form)
+        return render_template(
+            "index.html",async_mode=socketio.async_mode, form=form
+        )
 
 @socketio.on('cancel_order')
 def cancel(post_params={}):
@@ -179,8 +212,8 @@ def signup():
             return render_template('signup.html', form=form)
         else:
             newuser = User(
-                form.firstname.data, 
-                form.lastname.data, 
+                form.firstname.data,
+                form.lastname.data,
                 form.email.data, 
                 form.password.data
             )
@@ -194,42 +227,102 @@ def signup():
     elif request.method == GET:
         return render_template('signup.html', form=form)
 
-# To-DO
-@app.route("/save_order", methods=[GET, POST])
-def save_order():
+def date_handler(obj):
+    return obj.isoformat() if hasattr(obj, 'isoformat') else obj
 
-    orderForm = saveOrderForm(request.form)
-    traderForm = saveTradeForm(request.form)
+def get_all_order(user_email):
+    user = User.query.filter_by(email=user_email).first()
+    orders = Order.query.filter_by(uid=user.uid).all()
 
-    if request.method == POST:
-        newOrder = Order(
-            orderForm.type.data,
-            orderForm.size.data,
-            orderForm.inventory.data
+    all_orders = {}
+    all_orders['orders'] = []
+    for order in orders:
+        order_detail = {}
+        order_detail['trades'] = []
+        order_detail['type'] = order.type
+        order_detail['size'] = order.size
+        order_detail['inventory'] = order.inventory
+        order_detail['timestamp'] = json.dumps(order.timestamp, default=date_handler)
+        order_detail['final_status'] = order.final_status
+
+        trades = Trade.query.filter_by(oid=order.oid).all()
+
+        # ignore empty trades
+        if len(trades) == 0:
+            continue
+
+        for trade in trades:
+            trade_detail = {}
+            trade_detail['tid'] = trade.tid
+            trade_detail['type'] = trade.type
+            trade_detail['price'] = trade.price
+            trade_detail['shares'] = trade.shares
+            trade_detail['notional'] = trade.notional
+            trade_detail['status'] = trade.status
+            trade_detail['timestamp'] = json.dumps(trade.timestamp, default=date_handler)
+
+            order_detail['trades'].append(trade_detail)
+
+        all_orders['orders'].append(order_detail)
+
+    return json.dumps(all_orders)
+
+
+@app.route("/history", methods=[GET, POST])
+def history():
+    if not is_user_in_session():
+        return redirect(url_for('index', username=session['username']))
+    else:
+        email = session['email']
+        return render_template(
+            "history.html",
+            async_mode=socketio.async_mode,
+            username=session['username'],
+            all_orders=get_all_order(email)
         )
-        db.session.add(newOrder)
+
+
+def getOrderSqlTimeStamp(datetime_str):
+    date_time = datetime.strptime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
+
+def getTradeSqlTimestamp(json_timestamp):
+    date_time = datetime.strptime(json_timestamp, '"%Y-%m-%dT%H:%M:%S.%f"')
+    formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
+    return formated_time
+
+
+def save_order(user_email, order_status):
+    global order
+    global trades
+
+    user = User.query.filter_by(email=user_email).first()
+    new_order = Order(
+        'sell',
+        order['order_size'],
+        order['inventory'],
+        user.uid,
+        getOrderSqlTimeStamp(order['start_datetime']),
+        order_status
+    )
+    db.session.add(new_order)
+    db.session.commit()
+
+    for trade in trades:
+        newTrade = Trade(
+            'sell',
+            trade['share_price'],
+            trade['order_size'],
+            trade['notional'],
+            trade['status'],
+            new_order.oid,
+            getTradeSqlTimestamp(trade['timestamp'])
+        )
+        db.session.add(newTrade)
         db.session.commit()
 
-# @app.route("/login", methods=[GET, POST])
-# def login():
-#     if is_user_in_session():
-#         return redirect(url_for('trade', username=session['username']))
-
-#     form = LoginForm(request.form)
-
-#     if request.method == POST:
-#         email = form.email.data
-#         password = form.password.data
-#         user = User.query.filter_by(email=email).first()
-#         if user is not None and user.check_password(password):
-#             session['email'] = user.email
-#             session['username'] = user.firstname + ' ' + user.lastname
-#             return redirect(url_for('index', username=session['username']))
-#         else:
-#             return redirect(url_for('login'))
-
-#     elif request.method == 'GET':
-#         return render_template('login.html', form=form)
 
 @app.route("/login", methods=[GET, POST])
 def login():
@@ -251,8 +344,6 @@ def login():
         else:
             return redirect(url_for('index'))
 
-    # elif request.method == 'GET':
-    #     return render_template('index.html', form=form)
 
 @app.route("/logout")
 def logout():

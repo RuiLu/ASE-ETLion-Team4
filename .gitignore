@@ -1,4 +1,4 @@
-*.pyc
+*.py[c]
 *.swp
 *.pdf
 .DS_Store
@@ -7,4 +7,5 @@
 *.doc[x]
 *.ppt[x]
 *.json
+docs/_build/html/*
 .idea/*

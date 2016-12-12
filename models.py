@@ -11,6 +11,7 @@ class User(db.Model):
     lastname = db.Column(db.String(100))
     email = db.Column(db.String(120), unique=True)
     pwdhash = db.Column(db.String(54))
+    orders = db.relationship('Order', backref='users', lazy='dynamic')
 
     def __init__(self, firstname, lastname, email, password):
         self.firstname = firstname.title()
@@ -32,11 +33,16 @@ class Order(db.Model):
     type = db.Column(db.String(40))
     size = db.Column(db.Integer)
     inventory = db.Column(db.Integer)
+    timestamp = db.Column(db.TIMESTAMP)
+    final_status = db.Column(db.String(15))
 
-    def __init__(self, type, size, inventory):
+    def __init__(self, type, size, inventory, uid, timestamp, final_status):
         self.type = type.title()
         self.size = size
         self.inventory = inventory
+        self.uid = uid
+        self.timestamp = timestamp
+        self.final_status = final_status
 
 
 class Trade(db.Model):
@@ -48,10 +54,13 @@ class Trade(db.Model):
     shares = db.Column(db.Float)
     notional = db.Column(db.Float)
     status = db.Column(db.String(40))
+    timestamp = db.Column(db.TIMESTAMP)
 
-    def __init__(self, type, price, shares, notional, status):
+    def __init__(self, type, price, shares, notional, status, oid, timestamp):
         self.type = type.title()
         self.price = price
         self.shares = shares
         self.notional = notional
         self.status = status.title()
+        self.oid = oid
+        self.timestamp = timestamp
