@@ -25,7 +25,7 @@ Team: ET-Lion
 
 ## System Design
 #### Frontend:
-Boostrap, jQuery, Javascript
+Boostrap, jQuery, Javascript, D3.js
 
 #### Backend:
 Server: Socket-IO (Async Display), Flask(Server Framework)<br>

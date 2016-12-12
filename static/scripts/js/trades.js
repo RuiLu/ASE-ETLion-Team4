@@ -38,19 +38,24 @@ $(document).ready(function () {
         var zz = z[0].concat(" ", z[1]);
         dataYears.push(zz);
 
-        setInterval(function () {
-            update(dataArray, dataYears);
-        }, 500);
+        if (dataArray.length > 1) {
+            updateLineChart(dataArray, dataYears);
+        }
     });
 
     // used to receive confirmation that transaction is over
     socket.on("trade_over", function (param) {
         console.log(param);
-        $("#placeOrder").prop("disabled",false);
-        $("#cancelOrder").prop("disabled",true);
+        $("#placeOrder").prop("disabled", false);
+        $("#cancelOrder").prop("disabled", true);
     });
 
-    $("#placeOrder").on('click',function() {
+    $("#placeOrder").on('click', function () {
+
+        dataArray.length = 0;
+        dataYears.length = 0;
+        updateLineChart(dataArray, dataYears);
+        svg.selectAll("*").remove();
 
         var endTime = $('#timepicker').wickedpicker().wickedpicker('time');
         var startTime = new Date().toLocaleTimeString();
@@ -104,11 +109,11 @@ $(document).ready(function () {
             return false;
         }
 
-        $(this).prop("disabled",true);
-        $("#cancelOrder").prop("disabled",false);
+        $(this).prop("disabled", true);
+        $("#cancelOrder").prop("disabled", false);
 
-        var duration = (parseInt(endHour) - parseInt(startHour)) * 60 * 60 + 
-                       (parseInt(endMin) - parseInt(startMin)) * 60;
+        var duration = (parseInt(endHour) - parseInt(startHour)) * 60 * 60 +
+            (parseInt(endMin) - parseInt(startMin)) * 60;
 
         socket.emit("calculate", {
             order_size: $("#order_size").val(),
@@ -133,15 +138,15 @@ $(document).ready(function () {
         return false;
     });
 
-    $('div#cancel').click(function(event) {
-        $("#placeOrder").prop("disabled",false);
-        $("#cancelOrder").prop("disabled",true);
+    $('div#cancel').click(function (event) {
+        $("#placeOrder").prop("disabled", false);
+        $("#cancelOrder").prop("disabled", true);
         socket.emit('cancel_order');
         return false;
     });
 });
 
-var timepickers = $('#timepicker').wickedpicker(); 
+var timepickers = $('#timepicker').wickedpicker();
 
 // "2016-11-30T16:48:20.412771"
 // "2016-11-30T16:48:20"
@@ -152,10 +157,10 @@ var height = 200;
 var width = 500;
 
 var margin = {left: 50, right: 50, top: 40, bottom: 0};
-
 var svg = d3.select("#chart").append("svg").attr("width", "100%").attr("height", "100%");
 
-function update(dataArray, dataYears) {
+
+function updateLineChart(dataArray, dataYears) {
 
     svg.selectAll("*").remove();
 
@@ -171,9 +176,15 @@ function update(dataArray, dataYears) {
         }))
         .range([height, 0]);
 
-    var xAxis = d3.axisBottom(x);
+    var xAxis = d3.axisBottom(x)
+        .tickSizeInner([-height])
+        .tickSizeOuter(0);
 
-    var yAxis = d3.axisLeft(y).ticks(3).tickPadding(10).tickSize(10);
+    var yAxis = d3.axisLeft(y)
+        .ticks(4)
+        .tickSizeInner([-width])
+        .tickSizeOuter(0)
+        .tickPadding(10);
 
     var line = d3.line()
         .x(function (d, i) {
@@ -190,10 +201,24 @@ function update(dataArray, dataYears) {
     chartGroup.append("g")
         .attr("class", "axis x")
         .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
+        .call(xAxis)
+        .append("text")
+        .attr("fill", "#fff")
+        .attr("transform", "translate(" + width + ",0)")
+        .attr("x", 0)
+        .attr("y", 30)
+        .attr("dy", "0.71em")
+        .style("text-anchor", "end")
+        .text("Time (sec)");
 
     chartGroup.append("g")
         .attr("class", "axis y")
-        .call(yAxis);
-
+        .call(yAxis)
+        .append("text")
+        .attr("fill", "#fff")
+        .attr("transform", "rotate(-0)")
+        .attr("y", -24)
+        .attr("dy", "0.71em")
+        .style("text-anchor", "end")
+        .text("Price ($)");
 }

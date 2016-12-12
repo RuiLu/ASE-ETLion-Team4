@@ -34,13 +34,15 @@ class Order(db.Model):
     size = db.Column(db.Integer)
     inventory = db.Column(db.Integer)
     timestamp = db.Column(db.TIMESTAMP)
+    final_status = db.Column(db.String(15))
 
-    def __init__(self, type, size, inventory, uid, timestamp):
+    def __init__(self, type, size, inventory, uid, timestamp, final_status):
         self.type = type.title()
         self.size = size
         self.inventory = inventory
         self.uid = uid
         self.timestamp = timestamp
+        self.final_status = final_status
 
 
 class Trade(db.Model):
