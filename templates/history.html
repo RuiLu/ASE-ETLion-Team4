@@ -16,14 +16,13 @@
             <div class="col-xs-2">
                 <div class="sign dropdown">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            Last 30 days
+                            All Orders
                     <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                         <li><a href="#" id="cdr">Custom Date Range</a></li>
                         <li><a href="#" id="sd">Specific Date</a></li>
-                        <li><a href="#" id="l7d">Last 7 days</a></li>
-                        <li><a href="#" id="l30d">Last 30 days</a></li>
+                        <li><a href="#" id="ao">All Orders</a></li>
                     </ul>
                 </div>
             </div>
@@ -121,22 +120,57 @@
                 document.getElementById("choose-date-div").appendChild(div);
             });
 
-            $("#l7d").click(function (event) {
-                console.log("l7d");
+            $("#ao").click(function (event) {
+                console.log("ao");
                 var text = document.getElementById("dropdownMenu").firstChild;
-                text.data = "Last 7 days   ";
+                text.data = "All Orders  ";
 
                 $("#choose-from-range").remove();
                 $("#choose-from-specific").remove();
-            });
+                
+                while (count-- > 0) {
+                    $("#each-panel").remove();
+                }
 
-            $("#l30d").click(function (event) {
-                console.log("l30d");
-                var text = document.getElementById("dropdownMenu").firstChild;
-                text.data = "Last 30 days   ";
+                count = 1;
+                
+                for (i = obj.orders.length - 1; i >= 0; i--) {    
+                    var order = obj.orders[i];
 
-                $("#choose-from-range").remove();
-                $("#choose-from-specific").remove();
+                    var div = document.createElement('div');
+                    div.className = 'panel panel-default';
+                    div.setAttribute('id', 'each-panel');
+                    div.innerHTML += '<div class="panel-heading" id="panel-title">' +
+                                        '<h4 class="panel-title">' +
+                                            '<a data-toggle="collapse" href="#collapse' + count +
+                                            '">Start Time - ' + order.timestamp.replace('T', ' ') +
+                                            '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Total shares - ' + order.inventory +
+                                            '&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Type - ' + order.type + '</a>' +
+                                        '</h4>' +
+                                    '</div>' +
+                                    '<div id="collapse' + count + '" class="panel-collapse collapse">' +
+                                        '<table class = "table" id="history-table-' + count + '">' +
+                                            '<thead><tr><th>ID</th><th>Type</th><th>Price ($)</th><th>Shares</th><th>Notional</th><th>Timestamp</th><th>Status</th></tr></thead>' +
+                                            '<tbody id="history-log-'+ count +'">' + 
+                                            '</tbody>'
+                                        '</table>'+
+                                    '</div>';
+                    document.getElementById("history-group").appendChild(div);    
+
+                    for (j = 0; j < order.trades.length; j++) {
+                        var historyTableId = "#history-table-" + count;
+                        var historyInfo = '<tr><td>' + order.trades[j].tid + '</td>' + 
+                                          '<td>' + order.trades[j].type + '</td>' + 
+                                          '<td>' + order.trades[j].price + '</td>' + 
+                                          '<td>' + order.trades[j].shares + '</td>' + 
+                                          '<td>' + order.trades[j].notional + '</td>' + 
+                                          '<td>' + order.trades[j].timestamp.replace('T', ' ') + '</td>' + 
+                                          '<td>' + order.trades[j].status + '</td></tr>"';
+                        $(historyTableId).find("tbody").prepend(historyInfo);
+                    }
+
+                    count++;
+                }
             });
 
             $("#choose-date-div").on("click", "#rangeSubmitView", function (event) {
@@ -162,6 +196,13 @@
                     var orderDateTokens = order.timestamp.split("T")[0].split("-");
 
                     if (orderDateTokens == "null") continue;
+
+                    if (parseInt(startTokens[0]) > parseInt(endTokens[0]) ||
+                       (parseInt(startTokens[0])==parseInt(endTokens[0]) && parseInt(startTokens[1])>parseInt(endTokens[1])) ||
+                       (parseInt(startTokens[0])==parseInt(endTokens[0]) && parseInt(startTokens[1])==parseInt(endTokens[1]) && parseInt(startTokens[2])>parseInt(endTokens[2]))) {
+                        alert("Invalid input.");
+                        return false;
+                    }
 
                     if (parseInt(startTokens[0]) <= parseInt(orderDateTokens[0]) && 
                         parseInt(endTokens[0]) >= parseInt(orderDateTokens[0]) &&
