@@ -3,6 +3,7 @@
     height: 300px;
     width: 600px;
     background-color: #333333;
+    box-shadow: 0 0 10px gold;
 }
 
 .line {
@@ -16,7 +17,8 @@
 }
 
 g.tick line {
-    stroke: blue;
+    stroke: grey;
+    opacity: 0.4;
 }
 
 g.tick text {

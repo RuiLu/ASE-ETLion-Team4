@@ -8,3 +8,4 @@
 *.ppt[x]
 *.json
 docs/_build/html/*
+.idea/*
