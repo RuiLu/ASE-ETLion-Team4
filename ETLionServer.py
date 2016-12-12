@@ -92,9 +92,11 @@ def background_thread_place_order(
         notional = int(price * order_size)
         if order['avg_price'] <= 0:
             print "Unfilled order; $%s total, %s qty" % (pnl, qty)
+            print "order_discount", order_discount
             order_size = 0
             pnl = 0
             status = "fail"
+            order_discount += 1
         else:
             pnl += notional
             qty -= order_size
@@ -151,7 +153,8 @@ def calculate(post_params):
 
     exec_resume_order()
 
-    print post_params
+
+    print "calculate", post_params
 
     if post_params.get("is_for_test"):
         background_thread_place_order(**post_params)
