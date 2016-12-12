@@ -51,10 +51,10 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 def background_thread_place_order(
-        order_discount, order_size, inventory, total_duration, start_datetime,
+        order_size, inventory, total_duration, start_datetime,
         recipients=[], username="", is_for_test=False
     ):
-    order_discount = int(order_discount)
+    order_discount = 10
     order_size = int(order_size)
     inventory = int(inventory)
     duration = int(total_duration)
@@ -120,12 +120,15 @@ def background_thread_place_order(
         trades.append(emit_params)
         socketio.emit('trade_log', emit_params)
 
+        if not is_for_test:
+            with app.app_context():
+                save_order(recipients)
+
     socketio.emit('trade_over', "trade is over")
 
     if not is_for_test and qty == 0:
         with app.app_context():
             send_email_notification(recipients, username)
-            save_order(recipients)
 
 def exec_cancel_order():
     global is_order_canceled
