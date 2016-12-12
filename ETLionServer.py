@@ -31,7 +31,7 @@ thread = None
 is_order_canceled = False
 
 # latest order/trade info
-order = dict()
+order = {}
 trades = []
 
 def send_email_notification(recipients, username):
@@ -122,10 +122,13 @@ def background_thread_place_order(
 
     socketio.emit('trade_over', "trade is over")
 
-    if not is_for_test and qty == 0:
+    if not is_for_test:
         with app.app_context():
-            send_email_notification(recipients, username)
-            save_order(recipients)
+            if qty == 0:
+                send_email_notification(recipients, username)
+                save_order(recipients, 'completed')
+            else:
+                save_order(recipients, 'interrupted')
 
 def exec_cancel_order():
     global is_order_canceled
@@ -243,6 +246,7 @@ def get_all_order(user_email):
         order_detail['size'] = order.size
         order_detail['inventory'] = order.inventory
         order_detail['timestamp'] = json.dumps(order.timestamp, default=date_handler)
+        order_detail['final_status'] = order.final_status
 
         trades = Trade.query.filter_by(oid=order.oid).all()
 
@@ -293,7 +297,7 @@ def getTradeSqlTimestamp(json_timestamp):
     return formated_time
 
 
-def save_order(user_email):
+def save_order(user_email, order_status):
     global order
     global trades
 
@@ -303,7 +307,8 @@ def save_order(user_email):
         order['order_size'],
         order['inventory'],
         user.uid,
-        getOrderSqlTimeStamp(order['start_datetime'])
+        getOrderSqlTimeStamp(order['start_datetime']),
+        order_status
     )
     db.session.add(new_order)
     db.session.commit()
