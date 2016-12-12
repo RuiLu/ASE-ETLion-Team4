@@ -6,5 +6,5 @@ then
 	rm $file
 fi
 cp pre-commit $file
-chmod +x $file
+sudo chmod +x $file
 echo "Set Up pre-commit successfully."
