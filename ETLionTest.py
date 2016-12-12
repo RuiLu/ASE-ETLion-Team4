@@ -92,7 +92,6 @@ class ETLionServerTestCase(unittest.TestCase):
         )
         self.socketio_tester = socketio.test_client(self.app)
         post_params = {
-            "order_discount": self.app.config["ORDER_DISCOUNT"],
             "order_size": self.app.config["ORDER_SIZE"],
             "inventory": self.app.config["INVENTORY"],
             "total_duration": self.app.config["DURATION"],
