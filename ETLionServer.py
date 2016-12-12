@@ -12,6 +12,7 @@ from flask import url_for
 from flask_mail import Mail
 from flask_mail import Message
 from flask_socketio import SocketIO
+from sqlalchemy import exc
 
 from AppUtil import init_app
 from Enum import POST, GET
@@ -153,7 +154,6 @@ def calculate(post_params):
 
     exec_resume_order()
 
-
     print "calculate", post_params
 
     if post_params.get("is_for_test"):
@@ -207,25 +207,30 @@ def signup():
 
     form = SignupForm(request.form)
 
-    if request.method == POST:
-        if not form.validate():
+    try:
+        if request.method == POST:
+            if not form.validate():
+                return render_template('signup.html', form=form)
+            else:
+                newuser = User(
+                    form.firstname.data,
+                    form.lastname.data,
+                    form.email.data,
+                    form.password.data
+                )
+                db.session.add(newuser)
+                db.session.commit()
+
+                session['email'] = newuser.email
+                session['username'] = newuser.firstname + ' ' + newuser.lastname
+                return redirect(url_for('index', username=session['username']))
+
+        elif request.method == GET:
             return render_template('signup.html', form=form)
-        else:
-            newuser = User(
-                form.firstname.data,
-                form.lastname.data,
-                form.email.data, 
-                form.password.data
-            )
-            db.session.add(newuser)
-            db.session.commit()
 
-            session['email'] = newuser.email
-            session['username'] = newuser.firstname + ' ' + newuser.lastname
-            return redirect(url_for('index', username=session['username']))
-
-    elif request.method == GET:
+    except exc.IntegrityError:
         return render_template('signup.html', form=form)
+
 
 def date_handler(obj):
     return obj.isoformat() if hasattr(obj, 'isoformat') else obj
