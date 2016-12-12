@@ -11,8 +11,7 @@
 pyflakes *.py
 
 # System Testing
-python server.py
-python ETLionTest.py || exit 1
+python server.py | (python ETLionTest.py || exit 1)
 
 # Original Github Pre-commit test
 if git rev-parse --verify HEAD >/dev/null 2>&1
