@@ -80,22 +80,21 @@ $(document).ready(function () {
             return false;
         }
 
-        var orderDiscount = $("#order_discount").val();
         var orderSize = $("#order_size").val();
         var inventoryInput = $("#inventory").val();
 
         /* check if order discount, order size, and total shares are all numbers */
-        if (isNaN(orderDiscount) || isNaN(orderSize) || isNaN(inventoryInput)) {
+        if (isNaN(orderSize) || isNaN(inventoryInput)) {
             alert("Ouch! Please validate your input(s), allow NUMBER only.");
             return false;
         }
 
-        if (orderDiscount == "" || orderSize == "" || inventoryInput == "") {
+        if (orderSize == "" || inventoryInput == "") {
             alert("Oops, you forgot input something.");
             return false;
         }
 
-        if (parseInt(orderDiscount) < 0 || parseInt(orderSize) < 0 || parseInt(inventoryInput) < 0) {
+        if (parseInt(orderSize) < 0 || parseInt(inventoryInput) < 0) {
             alert("Hummm, we cannot accept negative inputs.");
             return false;
         }
@@ -112,7 +111,6 @@ $(document).ready(function () {
                        (parseInt(endMin) - parseInt(startMin)) * 60;
 
         socket.emit("calculate", {
-            order_discount: $("#order_discount").val(),
             order_size: $("#order_size").val(),
             inventory: $("#inventory").val(),
             total_duration: duration,
