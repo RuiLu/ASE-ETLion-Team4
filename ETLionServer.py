@@ -347,6 +347,7 @@ def login():
         else:
             return redirect(url_for('index'))
 
+
 @app.route("/logout")
 def logout():
     session.pop('email', None)
