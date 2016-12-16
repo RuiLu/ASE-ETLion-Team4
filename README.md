@@ -17,13 +17,13 @@ Team: ET-Lion
   python ETLionServer.py
   ```
 3. Signup or login with a user account.
-![Login/Signup](http://imgur.com/a/WAp1i)
+![Login/Signup](http://i.imgur.com/mIes5Rw.png)
 
 4. Place order with total number of shares, expected end time, and order size.
-![Place Order](http://imgur.com/a/7yltG)
+![Place Order](http://i.imgur.com/fvmf599.png)
 
 5. Track your order history and details for each order.
-![Trade History](http://imgur.com/a/4atMy)
+![Trade History](http://i.imgur.com/TKxP0f6.png)
 
 
 ## Software stack
