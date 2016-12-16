@@ -229,7 +229,7 @@ def signup():
             return render_template('signup.html', form=form)
 
     except exc.IntegrityError:
-        return render_template('signup.html', form=form)
+        return render_template('signup.html', form=form, duplicateEmailMsg = "User email alrealy exist.")
 
 
 def date_handler(obj):
