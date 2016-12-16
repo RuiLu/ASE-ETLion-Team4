@@ -10,11 +10,8 @@ Welcome to ETLion Trade's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-**Flask-SocketIO** gives Flask applications access to low latency
-bi-directional communications between the clients and the server. The
-client-side application can use any of the `SocketIO <http://socket.io>`_
-official clients libraries in Javascript, C++, Java and Swift, or any
-compatible client to establish a permanent connection to the server.
+**ETLion Trade** is an online web-based electronic trading application named “ETLion”. This application will split the order and execute each part at an even rate during a given period of time. The goal for this project is to make the process of executing client orders more efficient and transparent by automating the execution of the order, in a way that can minimize the market impact. After the trader place an order, they can use the application to monitor the overall order progress and details for each trades, including its execution time, status, and exchange quantity. The target user would be the trader who is in charge of the transaction for customers. In this application, user can login to the system, get the data from JP Morgan exchange API and make decision according to the transaction results.
+
 
 Installation & Set Up
 ---------------------
@@ -28,27 +25,7 @@ You can install this package in the usual way using ``pip``::
 Requirements
 ------------
 
-Flask-SocketIO is compatible with both Python 2.7 and Python 3.3+. The
-asynchronous services that this package relies on can be selected among three
-choices:
 
-The extension automatically detects which asynchronous framework to use based
-on what is installed. Preference is given to eventlet, followed by gevent.
-For WebSocket support in gevent, uWSGI is preferred, followed by
-gevent-websocket. If neither eventlet nor gevent are installed, then the Flask
-development server is used.
-
-If using multiple processes, a message queue service is used by the processes
-to coordinate operations such as broadcasting. The supported queues are
-`Redis <http://redis.io/>`_, `RabbitMQ <https://www.rabbitmq.com/>`_, and any
-other message queues supported by the
-`Kombu <http://kombu.readthedocs.org/en/latest/>`_ package.
-
-On the client-side, the official Socket.IO Javascript client library can be
-used to establish a connection to the server. There are also official clients
-written in Swift, Java and C++. Unofficial clients may also work, as long as
-they implement the
-`Socket.IO protocol <https://github.com/socketio/socket.io-protocol>`_.
 
 Initialization
 --------------
