@@ -16,14 +16,17 @@ Team: ET-Lion
   ```python
   python ETLionServer.py
   ```
-3. Input the parameters into the input boxes on the website, then click 'Place Order' button
-![place order](http://i.imgur.com/6aFCM1e.png)
+3. Signup or login with a user account.
+![Login/Signup](http://i.imgur.com/mIes5Rw.png)
 
-4. The transaction results will show up dynamically in the table one by one.
-![Trade History](http://i.imgur.com/6EJNrx2.png)
+4. Place order with total number of shares, expected end time, and order size.
+![Place Order](http://i.imgur.com/fvmf599.png)
+
+5. Track your order history and details for each order.
+![Trade History](http://i.imgur.com/TKxP0f6.png)
 
 
-## System Design
+## Software stack
 #### Frontend:
 Boostrap, jQuery, Javascript, D3.js
 
