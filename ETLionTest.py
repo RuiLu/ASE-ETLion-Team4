@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime
 
 from ETLionServer import app, socketio
+from models import User, Order, Trade
 
 class ETLionServerTestCase(unittest.TestCase):
 
@@ -42,7 +43,10 @@ class ETLionServerTestCase(unittest.TestCase):
         return self.tester.get('/logout', follow_redirects=True)
 
     def trade(self):
-        return self.tester.get('/calculate', )
+        return self.tester.get('/trade')
+
+    def history(self):
+        return self.tester.get('/history')
     
     def test_index(self):
         response = self.index()
@@ -90,6 +94,10 @@ class ETLionServerTestCase(unittest.TestCase):
             self.app.config["EMAIL"],
             self.app.config["PASSWORD"]
         )
+
+        response = self.trade()
+        self.assertEqual(response.status_code, 200)
+
         self.socketio_tester = socketio.test_client(self.app)
         post_params = {
             "order_size": self.app.config["ORDER_SIZE"],
@@ -98,7 +106,8 @@ class ETLionServerTestCase(unittest.TestCase):
             "start_datetime": (
                 datetime.now().strftime("'%Y-%m-%d %H:%M:%S %p'")
             ),
-            "is_for_test": True
+            "is_for_test": True,
+            "is_for_history_test": False
         }
         self.socketio_tester.emit("calculate", post_params)
         receiveds = self.socketio_tester.get_received()
@@ -153,6 +162,48 @@ class ETLionServerTestCase(unittest.TestCase):
                 last_received["args"][0],
             )
 
+    def test_history(self):
+        self.login(
+            self.app.config["EMAIL"],
+            self.app.config["PASSWORD"]
+        )
+        self.socketio_tester = socketio.test_client(self.app)
+        post_params = {
+            "order_size": self.app.config["ORDER_SIZE"],
+            "inventory": self.app.config["INVENTORY"],
+            "total_duration": self.app.config["DURATION"],
+            "start_datetime": (
+                datetime.now().strftime("%m/%d/%Y %I:%M:%S %p")
+            ),
+            "recipients": self.app.config["EMAIL"],
+            "username": "Test Test",
+            "is_for_history_test": True
+        }
+        self.socketio_tester.emit("calculate", post_params)
+        receiveds = self.socketio_tester.get_received()
+        receiveds = receiveds[:-1]
+
+        response = self.history()
+        self.assertEqual(response.status_code, 200)
+
+        with self.app.app_context():
+            user = User.query.filter_by(email=self.app.config["EMAIL"]).first()
+            order = (
+                Order.query.filter_by(uid=user.uid).order_by('oid').first()
+            )
+            trades = Trade.query.filter_by(oid=order.oid).all()
+
+            self.assertEqual(
+                len(trades),
+                self.app.config["INVENTORY"] / self.app.config["ORDER_SIZE"]
+            )
+            for trade in trades:
+                self.assertIsNotNone(trade.tid)
+                self.assertIsNotNone(trade.type)
+                self.assertIsNotNone(trade.price)
+                self.assertIsNotNone(trade.shares)
+                self.assertIsNotNone(trade.notional)
+                self.assertIsNotNone(trade.status)
 
 if __name__ == "__main__":
     unittest.main()

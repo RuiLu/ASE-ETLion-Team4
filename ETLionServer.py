@@ -53,7 +53,8 @@ def json_serial(obj):
 
 def background_thread_place_order(
         order_size, inventory, total_duration, start_datetime,
-        recipients=[], username="", is_for_test=False
+        recipients=[], username="",
+        is_for_test=False, is_for_history_test=False
     ):
     order_discount = 10
     order_size = int(order_size)
@@ -156,8 +157,10 @@ def calculate(post_params):
 
     print "calculate", post_params
 
-    if post_params.get("is_for_test"):
+    if (post_params.get("is_for_test")
+        or post_params.get("is_for_history_test")):
         background_thread_place_order(**post_params)
+
     else:
         global thread
         post_params['recipients'] = session['email']
@@ -286,7 +289,6 @@ def history():
             all_orders=get_all_order(email)
         )
 
-
 def getOrderSqlTimeStamp(datetime_str):
     date_time = datetime.strptime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
     formated_time = '{0:%Y}-{0:%m}-{0:%d} {0:%H}:{0:%M}:{0:%S}'.format(date_time)
@@ -348,7 +350,6 @@ def login():
             return redirect(url_for('trade', username=session['username']))
         else:
             return redirect(url_for('index'))
-
 
 @app.route("/logout")
 def logout():
