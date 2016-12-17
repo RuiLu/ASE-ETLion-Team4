@@ -41,6 +41,11 @@
                         {% endfor %}
                     {% endif %}
                     {{ form.email }}
+
+                    {% if duplicateEmailMsg %}
+                    <p class="error-message" id="error">{{ duplicateEmailMsg }}</p>
+                    {% endif %}
+
                 </div>
                 <div class="form-group">
                     {{ form.password.label }}
